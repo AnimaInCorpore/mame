@@ -4,6 +4,7 @@
 #include "emu.h"
 #include "m68000.h"
 #include "m68kdasm.h"
+#include "fileio.h"
 
 #include <cstring>
 #include <string_view>
