@@ -674,7 +674,19 @@ regdep = [
     DEP.aregh, DEP.dregh, DEP.aregh, DEP.dregh, DEP.aregh|DEP.dregh|DEP.irc, DEP.aregh, DEP.aregh, DEP.aregh, DEP.dt, DEP.au, DEP.ath, DEP.pc, DEP.aob, DEP.aregh|DEP.dregh,
     DEP.alue, DEP.alub, DEP.dbin, 0, DEP.aluo, DEP.dcr, DEP.dcr, DEP.dcr, DEP.ftu, DEP.ir, DEP.irc, DEP.ird, 0, DEP.sr, 0
     ]
-    
+
+source_regname = [
+    None,
+    "m_da_source[rx]", "m_da_source[rx]", "m_da_source[ry]", "m_da_source[ry]", "m_da_source[map_sp(m_irc >> 12)]", "m_da_source[m_sp]", "m_da_source[16]", "m_da_source[15]", "m_dt_source", "m_au_source", "m_at_source", "m_pc_source", "m_aob_source", "m_da_source[m_movems]",
+    "m_da_source[rx]", "m_da_source[rx]", "m_da_source[ry]", "m_da_source[ry]", "m_da_source[map_sp(m_irc >> 12)]", "m_da_source[m_sp]", "m_da_source[16]", "m_da_source[15]", "m_dt_source", "m_au_source", "m_at_source", "m_pc_source", "m_aob_source", "m_da_source[m_movems]",
+    "m_alue_source", "m_alub_source", "m_dbin_source", "m_dbout_source", "m_aluo_source", "m_dcr_source", "m_dcr_source", "m_dcr_source", "m_ftu_source", "m_ir_source", "m_irc_source", "m_ird_source", "m_edb_source", "m_sr_source", "m_movemr_source"
+    ]
+
+address_like_regs = {
+    R.axl, R.axh, R.ayl, R.ayh, R.a7l, R.a7h, R.sspl, R.ssph, R.uspl, R.usph,
+    R.aul, R.auh, R.atl, R.ath, R.pcl, R.pch, R.aobl, R.aobh
+}
+
 def reg_mergeable(rh, rl):
     return rh != None and rl != None and rl <= R.moveml and rh <= R.movemh and rl + (R.axh - R.axl) == rh
 
@@ -2000,7 +2012,10 @@ def handler_name_for_instruction(ii):
 
 # Generate C++ source from the code
 
-def generate_source_from_code(code, gen_mode):
+def generate_source_from_code(code, gen_mode, handler_name=None):
+    def target_is_address_like(target):
+        return target in address_like_regs
+
     def make_expression(ci):
         if ci == None:
             return "0"
@@ -2048,6 +2063,59 @@ def generate_source_from_code(code, gen_mode):
         else:
             print("unknown expression type %s" % ci[0])
             sys.exit(1)
+
+    def expr_is_address_like(ci):
+        if ci == None:
+            return False
+
+        if type(ci) != list:
+            return ci in address_like_regs
+
+        if ci[0] in ("+c", "+1/2", "-1/2", "ext32", "ext32h"):
+            return expr_is_address_like(ci[1])
+        if ci[0] in ("merge", "+r"):
+            return expr_is_address_like(ci[1]) or expr_is_address_like(ci[2])
+        if len(ci) == 1:
+            return expr_is_address_like(ci[0])
+        return False
+
+    def make_source_expression(ci, address_context=False):
+        if ci == None:
+            return "-1"
+
+        if type(ci) != list:
+            if ci == R.dcro or ci == R.dcro8:
+                return "m_dcr_source"
+            if ci == "trap-tvn":
+                return "m_ird_source"
+            if ci == "ftu-i" or ci == "ftu-ssw" or ci == "int-tvn":
+                return "-1"
+            return source_regname[ci]
+
+        if ci[0] == "c":
+            return "-1"
+        elif ci[0] == "+c" or ci[0] == "+1/2" or ci[0] == "-1/2" or ci[0] == "ext32" or ci[0] == "ext32h":
+            return make_source_expression(ci[1], address_context)
+        elif ci[0] == "q8":
+            return "m_ird_source"
+        elif ci[0] == "merge" or ci[0] == "+r":
+            lhs_addr = expr_is_address_like(ci[1])
+            rhs_addr = expr_is_address_like(ci[2])
+            if address_context:
+                if lhs_addr and not rhs_addr:
+                    return make_source_expression(ci[1], address_context)
+                if rhs_addr and not lhs_addr:
+                    return make_source_expression(ci[2], address_context)
+            return make_source_expression(ci[1], address_context)
+        elif len(ci) == 1:
+            return make_source_expression(ci[0], address_context)
+        else:
+            return "-1"
+
+    def emit_source_update(target, expr, address_context=False):
+        target_source = source_regname[target]
+        if target_source != None:
+            source.append("\t%s = %s;" % (target_source, make_source_expression(expr, address_context or target_is_address_like(target))))
 
     def aluname(op, mask, info):
         n = "alu_" + alu_opnames[op]
@@ -2118,10 +2186,19 @@ def generate_source_from_code(code, gen_mode):
                     source.append("\tstart_interrupt_vector_lookup();")
                 access_steps = 2 if (gen_mode & GEN.m68008) and ci[2] != 2 and not ci[3] else 1
                 cid = ci[1]
+                is_data_space = ci[2] == 1
+                is_jsr_bsr = handler_name != None and (handler_name.startswith("jsr") or handler_name.startswith("bsr"))
                 for access_step in range(access_steps):
                     if not (gen_mode & GEN.full):
                         source.append("\t[[fallthrough]]; case %d:" % (cid))
+                    if is_data_space:
+                        source.append("\ttelemetry_mark_address_source(m_aob_source);")
                     if ci[4]:
+                        if is_data_space:
+                            if is_jsr_bsr:
+                                source.append("\tm_telemetry_current_write_source = -1;")
+                            else:
+                                source.append("\tm_telemetry_current_write_source = m_dbout_source;")
                         if ci[3]:
                             if ci[8]:
                                 source.append("\tif(!m_tas_write_callback.isnull())")
@@ -2200,6 +2277,11 @@ def generate_source_from_code(code, gen_mode):
                                     source.append("\tm_edb = %s.read_interruptible(m_aob & ~1);" % (["m_opcodes", "m_program"][ci[2]]))
                                 else:
                                     source.append("\tm_edb = m_mmu->read_%s(m_aob & ~1, 0xffff);" % (["program", "data"][ci[2]]))
+                    if not ci[4]:
+                        if is_data_space:
+                            source.append("\tm_edb_source = m_telemetry_last_read_source;")
+                        else:
+                            source.append("\tm_edb_source = -1;")
                     source.append("\tm_icount -= 4;")
                     if ci[8]:
                         if ci[4]:
@@ -2230,6 +2312,7 @@ def generate_source_from_code(code, gen_mode):
                         source.append("\t[[fallthrough]]; case %d:" % (cid+1))
                     if ci[10] and (access_steps == 1 or access_step == 1):
                         source.append("\tm_sr = m_new_sr;")
+                        source.append("\tm_sr_source = m_new_sr_source;")
                         source.append("\tupdate_user_super();")
                         source.append("\tupdate_interrupt();")
                     cid += 2
@@ -2245,42 +2328,56 @@ def generate_source_from_code(code, gen_mode):
                     source.append("\t}")
             elif ci[0] == "=":
                 source.append("\t%s = %s;" % (regname[ci[1]], make_expression(ci[2:])))
+                emit_source_update(ci[1], ci[2:])
             elif ci[0] == "=srd":
                 source.append("\tm_new_sr = m_isr = %s & (SR_CCR|SR_SR);" % make_expression(ci[2:]))
+                source.append("\tm_new_sr_source = %s;" % make_source_expression(ci[2:]))
             elif ci[0] == "=sr":
                 source.append("\t%s = m_isr = %s & (SR_CCR|SR_SR);" % (regname[ci[1]], make_expression(ci[2:])))
+                source.append("\t%s = %s;" % (source_regname[ci[1]], make_source_expression(ci[2:])))
                 source.append("\tupdate_user_super();")
                 source.append("\tupdate_interrupt();")
             elif ci[0] == "=sri7":
                 source.append("\t%s |= 0x0700;" % (regname[R.sr]))
+                source.append("\tm_sr_source = -1;")
                 source.append("\tupdate_interrupt();")
             elif ci[0] == "=sri":
                 source.append("\t%s = (%s & ~SR_I) | ((m_next_state >> 16) & SR_I);" % (regname[R.sr], regname[R.sr]))
+                source.append("\tm_sr_source = -1;")
                 source.append("\tupdate_interrupt();")
             elif ci[0] == "=ccr":
                 source.append("\t%s = m_isr = (%s & SR_CCR) | (%s & SR_SR);" % (regname[ci[1]], make_expression(ci[2:]), regname[ci[1]]))
+                source.append("\t%s = %s;" % (source_regname[ci[1]], make_source_expression(ci[2:])))
             elif ci[0] == "=8":
                 source.append("\tset_8(%s, %s);" % (regname[ci[1]], make_expression(ci[2:])))
+                emit_source_update(ci[1], ci[2:])
             elif ci[0] == "=8h":
                 source.append("\tset_8h(%s, %s);" % (regname[ci[1]], make_expression(ci[2:])))
+                emit_source_update(ci[1], ci[2:])
             elif ci[0] == "=16l":
                 source.append("\tset_16l(%s, %s);" % (regname[ci[1]], make_expression(ci[2:])))
+                emit_source_update(ci[1], ci[2:])
             elif ci[0] == "=16h":
                 source.append("\tset_16h(%s, %s);" % (regname[ci[1]], make_expression(ci[2:])))
+                emit_source_update(ci[1], ci[2:])
             elif ci[0] == "=8xl":
                 source.append("\tset_8xl(%s, %s);" % (regname[ci[1]], make_expression(ci[2:])))
+                emit_source_update(ci[1], ci[2:])
             elif ci[0] == "=8xh":
                 source.append("\tset_8xh(%s, %s);" % (regname[ci[1]], make_expression(ci[2:])))
+                emit_source_update(ci[1], ci[2:])
             elif ci[0] == "alu":
                 aname, aflags = aluname(ci[1], ci[2], ci[3])
                 if len(ci) == 5:
                     source.append("\t%s(%s);" % (aname, make_expression(ci[4])))
+                    source.append("\tm_aluo_source = %s;" % make_source_expression(ci[4], True))
                 else:
                     sec = make_expression(ci[5])
                     # make gcc happy
                     if sec == "0xffff" and ci[3] & ALUInfo.is_byte and (ci[1] != ALU.and_ or (ci[3] & ALUInfo.is_rox_and)):
                         sec = "0xff"
                     source.append("\t%s(%s, %s);" % (aname, make_expression(ci[4]), sec))
+                    source.append("\tm_aluo_source = %s;" % make_source_expression(["merge", ci[4], ci[5]], True))
                 if aflags != None:
                     source.append("\tsr_%s();" % aflags)
             elif ci[0] == "=t":
@@ -2392,7 +2489,7 @@ def generate_source_file(fname, cmd, gen_mode):
     for st in states:        
 #        print(handler_name_for_state(st))
         code = generate_intermediate_code_from_state(st, gen_mode)
-        source = generate_source_from_code(code, gen_mode)
+        source = generate_source_from_code(code, gen_mode, handler_name_for_state(st))
         print("void %s_device::%s_%s()" % (cpu, handler_name_for_state(st), suf), file=out)
         print("{", file=out)
         for l in source:
@@ -2405,7 +2502,7 @@ def generate_source_file(fname, cmd, gen_mode):
             continue
 #        print(handler_name_for_instruction(ii))
         code = generate_intermediate_code_from_instruction(ii[0], ii[1], " ".join(ii[2]), gen_mode)
-        source = generate_source_from_code(code, gen_mode)
+        source = generate_source_from_code(code, gen_mode, handler_name_for_instruction(ii))
         print("void %s_device::%s_%s() // %04x %04x" % (cpu, handler_name_for_instruction(ii), suf, ii[0], ii[1]), file=out)
         print("{", file=out)
         for l in source:
@@ -2440,7 +2537,7 @@ if sys.argv[1] == "i":
         print("Illegal instruction")
         sys.exit(0)
     code = generate_intermediate_code_from_instruction(ii[0], ii[2], " ".join(ii[2]), 0)
-    source = generate_source_from_code(code, GEN.direct|GEN.full)
+    source = generate_source_from_code(code, GEN.direct|GEN.full, handler_name_for_instruction(ii))
     print("# %s" % handler_name_for_instruction(ii))
     for l in source:
         print(l)
@@ -2453,7 +2550,7 @@ if sys.argv[1] == 's':
         if st[1] == sys.argv[3]:
             state = st
     code = generate_intermediate_code_from_state(state)
-    source = generate_source_from_code(code, GEN.direct|GEN.full)
+    source = generate_source_from_code(code, GEN.direct|GEN.full, handler_name_for_state(state))
     for l in source:
         print(l)
 

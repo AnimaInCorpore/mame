@@ -5,6 +5,22 @@
 #include "m68000.h"
 #include "m68kdasm.h"
 
+#include <cstring>
+#include <string_view>
+
+namespace {
+
+constexpr u64 TELEMETRY_CODE        = 0x00000001ULL;
+constexpr u64 TELEMETRY_ADDRESS     = 0x00000002ULL;
+constexpr u64 TELEMETRY_READ_BYTE   = 0x00000100ULL;
+constexpr u64 TELEMETRY_READ_WORD   = 0x00000200ULL;
+constexpr u64 TELEMETRY_READ_LONG   = 0x00000400ULL;
+constexpr u64 TELEMETRY_WRITE_BYTE  = 0x00010000ULL;
+constexpr u64 TELEMETRY_WRITE_WORD  = 0x00020000ULL;
+constexpr u64 TELEMETRY_WRITE_LONG  = 0x00040000ULL;
+
+} // anonymous namespace
+
 DEFINE_DEVICE_TYPE(M68000,      m68000_device,      "m68000",       "Motorola MC68000")
 
 std::unique_ptr<util::disasm_interface> m68000_device::create_disassembler()
@@ -134,6 +150,143 @@ u16 m68000_device::berr_r()
 	return 0;
 }
 
+void m68000_device::telemetry_mark(offs_t address, u64 bits)
+{
+	if(!m_telemetry_enabled || !m_telemetry || machine().side_effects_disabled())
+		return;
+
+	if(address >= m_telemetry_rom_size)
+		return;
+
+	m_telemetry[address] |= bits;
+	m_telemetry_dirty = true;
+}
+
+s32 m68000_device::telemetry_resolve_source(s32 source) const noexcept
+{
+	if(source < 0)
+		return -1;
+
+	if(!m_memory_source)
+		return source;
+
+	u32 const address = u32(source) & 0xffffff;
+	s32 const resolved = m_memory_source[address];
+	return resolved == -1 ? source : resolved;
+}
+
+void m68000_device::telemetry_store_memory_source(offs_t address, s32 source)
+{
+	if(!m_memory_source)
+		return;
+
+	m_memory_source[address & 0xffffff] = telemetry_resolve_source(source);
+}
+
+void m68000_device::telemetry_mark_address_source(s32 source)
+{
+	if(!m_telemetry_enabled || !m_telemetry || machine().side_effects_disabled())
+		return;
+
+	source = telemetry_resolve_source(source);
+	if(source >= 0 && u32(source) < m_telemetry_rom_size)
+		telemetry_mark(offs_t(source), TELEMETRY_ADDRESS);
+}
+
+void m68000_device::telemetry_mark_code(offs_t address)
+{
+	telemetry_mark(address, TELEMETRY_CODE);
+}
+
+void m68000_device::telemetry_flush_pending()
+{
+	if(!m_telemetry_pending.valid)
+		return;
+
+	telemetry_mark(m_telemetry_pending.address, m_telemetry_pending.write ? TELEMETRY_WRITE_WORD : TELEMETRY_READ_WORD);
+	if(m_telemetry_pending.write)
+		telemetry_store_memory_source(m_telemetry_pending.address, m_telemetry_pending.source);
+	m_telemetry_pending.valid = false;
+	m_telemetry_pending.source = -1;
+}
+
+void m68000_device::telemetry_record_data_access(offs_t address, u16 mem_mask, bool write)
+{
+	if(!m_telemetry_enabled || !m_telemetry || machine().side_effects_disabled())
+		return;
+
+	if(mem_mask != 0xffff) {
+		telemetry_flush_pending();
+		offs_t const byte_address = address + ((mem_mask & 0x00ff) ? 1 : 0);
+		if(write) {
+			telemetry_mark(byte_address, TELEMETRY_WRITE_BYTE);
+			telemetry_store_memory_source(byte_address, m_telemetry_current_write_source);
+		} else {
+			telemetry_mark(byte_address, TELEMETRY_READ_BYTE);
+			m_telemetry_last_read_source = telemetry_resolve_source(byte_address);
+		}
+		return;
+	}
+
+	offs_t const word_address = address & ~offs_t(1);
+
+	if(m_telemetry_pending.valid && (m_telemetry_pending.write == write)) {
+		if(m_telemetry_pending.address + 2 == word_address) {
+			telemetry_mark(m_telemetry_pending.address, write ? TELEMETRY_WRITE_LONG : TELEMETRY_READ_LONG);
+			if(write)
+				telemetry_store_memory_source(m_telemetry_pending.address, m_telemetry_pending.source);
+			else
+				m_telemetry_last_read_source = telemetry_resolve_source(m_telemetry_pending.address);
+			m_telemetry_pending.valid = false;
+			return;
+		}
+
+		if(word_address + 2 == m_telemetry_pending.address) {
+			telemetry_mark(word_address, write ? TELEMETRY_WRITE_LONG : TELEMETRY_READ_LONG);
+			if(write)
+				telemetry_store_memory_source(word_address, m_telemetry_pending.source);
+			else
+				m_telemetry_last_read_source = telemetry_resolve_source(word_address);
+			m_telemetry_pending.valid = false;
+			return;
+		}
+	}
+
+	telemetry_flush_pending();
+	m_telemetry_pending.address = word_address;
+	m_telemetry_pending.source = write ? m_telemetry_current_write_source : telemetry_resolve_source(word_address);
+	m_telemetry_pending.write = write;
+	m_telemetry_pending.valid = true;
+	if(!write)
+		m_telemetry_last_read_source = m_telemetry_pending.source;
+}
+
+void m68000_device::telemetry_clear_sources()
+{
+	memset(m_da_source, 0xff, sizeof(m_da_source));
+	m_pc_source = -1;
+	m_au_source = -1;
+	m_at_source = -1;
+	m_aob_source = -1;
+	m_dt_source = -1;
+	m_dbin_source = -1;
+	m_dbout_source = -1;
+	m_edb_source = -1;
+	m_irc_source = -1;
+	m_ir_source = -1;
+	m_ird_source = -1;
+	m_ftu_source = -1;
+	m_aluo_source = -1;
+	m_alue_source = -1;
+	m_alub_source = -1;
+	m_movemr_source = -1;
+	m_sr_source = -1;
+	m_new_sr_source = -1;
+	m_dcr_source = -1;
+	m_telemetry_last_read_source = -1;
+	m_telemetry_current_write_source = -1;
+}
+
 bool m68000_device::supervisor_mode() const noexcept
 {
 	return m_sr & SR_S;
@@ -159,8 +312,15 @@ void m68000_device::execute_run()
 
 		while(m_icount > 0) {
 			if(m_inst_state >= S_first_instruction) {
+				telemetry_flush_pending();
 				m_ipc = m_pc - 2;
 				m_irdi = m_ird;
+				m_ird_source = m_ipc;
+				m_irc_source = m_pc;
+				m_pc_source = m_pc;
+				m_telemetry_last_read_source = -1;
+				m_telemetry_current_write_source = -1;
+				telemetry_mark_code(m_ipc);
 
 				if(debugger_enabled())
 					debugger_instruction_hook(m_ipc);
@@ -353,6 +513,66 @@ void m68000_device::device_start()
 	state_add(M68K_SP,  "SP", m_da[16]);
 
 	set_icountptr(m_icount);
+
+	m_telemetry_enabled = false;
+	m_telemetry_dirty = false;
+	m_telemetry_rom_size = 0;
+	m_telemetry_pending = {};
+	m_telemetry_pending.source = -1;
+	m_memory_snapshot.reset();
+	m_telemetry.reset();
+	m_memory_source.reset();
+	telemetry_clear_sources();
+
+	if(!m_disable_spaces && !m_disable_specifics && (std::string_view(tag()) == ":maincpu")) {
+		memory_region *const region = memregion(tag());
+		if(region) {
+			m_telemetry_rom_size = region->bytes();
+			if(m_telemetry_rom_size) {
+				m_memory_snapshot = std::make_unique<u8[]>(m_telemetry_rom_size);
+				m_telemetry = std::make_unique<u64[]>(m_telemetry_rom_size);
+				m_memory_source = std::make_unique<s32[]>(0x1000000);
+				memcpy(m_memory_snapshot.get(), region->base(), m_telemetry_rom_size);
+				memset(m_telemetry.get(), 0, m_telemetry_rom_size * sizeof(u64));
+				memset(m_memory_source.get(), 0xff, 0x1000000 * sizeof(s32));
+				telemetry_clear_sources();
+
+				emu_file telemetry_file(OPEN_FLAG_READ);
+				if(!telemetry_file.open(machine().basename() + ".telemetry")) {
+					u32 const telemetry_bytes = m_telemetry_rom_size * sizeof(u64);
+					u32 const file_bytes = telemetry_file.size() > telemetry_bytes ? telemetry_bytes : u32(telemetry_file.size());
+					if(file_bytes)
+						telemetry_file.read(m_telemetry.get(), file_bytes);
+				}
+
+				auto const read_cb = [this] (offs_t address, u16 mask) { telemetry_record_data_access(address, mask, false); };
+				auto const write_cb = [this] (offs_t address, u16 mask) { telemetry_record_data_access(address, mask, true); };
+				m_r_program.set_telemetry_read(read_cb);
+				m_r_program.set_telemetry_write(write_cb);
+				m_r_uprogram.set_telemetry_read(read_cb);
+				m_r_uprogram.set_telemetry_write(write_cb);
+				m_program.set_telemetry_read(read_cb);
+				m_program.set_telemetry_write(write_cb);
+				m_telemetry_enabled = true;
+			}
+		}
+	}
+}
+
+void m68000_device::device_stop()
+{
+	telemetry_flush_pending();
+
+	if(!m_telemetry_enabled || !m_memory_snapshot || !m_telemetry)
+		return;
+
+	emu_file memory_file(OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS);
+	if(!memory_file.open(machine().basename() + ".memory"))
+		memory_file.write(m_memory_snapshot.get(), m_telemetry_rom_size);
+
+	emu_file telemetry_file(OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS);
+	if(!telemetry_file.open(machine().basename() + ".telemetry"))
+		telemetry_file.write(m_telemetry.get(), m_telemetry_rom_size * sizeof(u64));
 }
 
 void m68000_device::state_import(const device_state_entry &entry)
@@ -398,6 +618,11 @@ void m68000_device::state_string_export(const device_state_entry &entry, std::st
 
 void m68000_device::device_reset()
 {
+	telemetry_flush_pending();
+	m_telemetry_pending = {};
+	m_telemetry_pending.source = -1;
+	telemetry_clear_sources();
+
 	m_inst_state = S_RESET;
 	m_inst_substate = 0;
 	m_count_before_instruction_step = 0;

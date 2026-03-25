@@ -44,6 +44,7 @@ public:
 	virtual space_config_vector memory_space_config() const override;
 	virtual space_config_vector memory_logical_space_config() const override;
 	virtual void device_start() override ATTR_COLD;
+	virtual void device_stop() override ATTR_COLD;
 	virtual void device_reset() override ATTR_COLD;
 	virtual bool memory_translate(int spacenum, int intention, offs_t &address, address_space *&target_space) override;
 
@@ -167,6 +168,44 @@ protected:
 	bool m_disable_spaces;
 	bool m_disable_specifics;
 
+	struct telemetry_pending_access {
+		offs_t address = 0;
+		s32 source = -1;
+		bool write = false;
+		bool valid = false;
+	};
+
+	bool m_telemetry_enabled = false;
+	bool m_telemetry_dirty = false;
+	u32 m_telemetry_rom_size = 0;
+	telemetry_pending_access m_telemetry_pending;
+	std::unique_ptr<u8[]> m_memory_snapshot;
+	std::unique_ptr<u64[]> m_telemetry;
+	std::unique_ptr<s32[]> m_memory_source;
+	s32 m_telemetry_last_read_source = -1;
+	s32 m_telemetry_current_write_source = -1;
+
+	s32 m_da_source[17];
+	s32 m_pc_source;
+	s32 m_au_source;
+	s32 m_at_source;
+	s32 m_aob_source;
+	s32 m_dt_source;
+	s32 m_dbin_source;
+	s32 m_dbout_source;
+	s32 m_edb_source;
+	s32 m_irc_source;
+	s32 m_ir_source;
+	s32 m_ird_source;
+	s32 m_ftu_source;
+	s32 m_aluo_source;
+	s32 m_alue_source;
+	s32 m_alub_source;
+	s32 m_movemr_source;
+	s32 m_sr_source;
+	s32 m_new_sr_source;
+	s32 m_dcr_source;
+
 	// Internal processor state, in inverse size order
 
 	u32 m_da[17]; // 8 data, 7 address, usp, ssp in that order
@@ -213,6 +252,16 @@ protected:
 
 	// update needed stuff on priviledge level switch
 	virtual void update_user_super();
+
+	// telemetry output helpers
+	void telemetry_flush_pending();
+	void telemetry_mark_code(offs_t address);
+	void telemetry_record_data_access(offs_t address, u16 mem_mask, bool write);
+	void telemetry_mark(offs_t address, u64 bits);
+	s32 telemetry_resolve_source(s32 source) const noexcept;
+	void telemetry_store_memory_source(offs_t address, s32 source);
+	void telemetry_mark_address_source(s32 source);
+	void telemetry_clear_sources();
 
 	// update needed stuff on interrupt level switch
 	void update_interrupt();

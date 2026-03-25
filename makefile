@@ -1524,7 +1524,97 @@ generate: \
 		$(GEN_FOLDERS) \
 		$(GENDIR)/version.cpp \
 		$(patsubst %.po,%.mo,$(call rwildcard, language/, *.po)) \
-		$(patsubst $(SRC)/%.lay,$(GENDIR)/%.lh,$(LAYOUTS))
+		$(patsubst $(SRC)/%.lay,$(GENDIR)/%.lh,$(LAYOUTS)) \
+		regen-m68000
+
+# Keep the checked-in M68000 generator outputs in sync with the source list.
+M68000_CPU_DIR := $(SRC)/devices/cpu/m68000
+M68000_GEN_SCRIPT := $(M68000_CPU_DIR)/m68000gen.py
+M68000_GEN_LIST := $(M68000_CPU_DIR)/m68000.lst
+M68000_GEN_OUTPUTS := \
+	$(M68000_CPU_DIR)/m68000-decode.cpp \
+	$(M68000_CPU_DIR)/m68000-head.h \
+	$(M68000_CPU_DIR)/m68000-sdf.cpp \
+	$(M68000_CPU_DIR)/m68000-sif.cpp \
+	$(M68000_CPU_DIR)/m68000-sdp.cpp \
+	$(M68000_CPU_DIR)/m68000-sip.cpp \
+	$(M68000_CPU_DIR)/m68000mcu-head.h \
+	$(M68000_CPU_DIR)/m68000mcu-sdfm.cpp \
+	$(M68000_CPU_DIR)/m68000mcu-sifm.cpp \
+	$(M68000_CPU_DIR)/m68000mcu-sdpm.cpp \
+	$(M68000_CPU_DIR)/m68000mcu-sipm.cpp \
+	$(M68000_CPU_DIR)/m68008-head.h \
+	$(M68000_CPU_DIR)/m68008-sdf8.cpp \
+	$(M68000_CPU_DIR)/m68008-sif8.cpp \
+	$(M68000_CPU_DIR)/m68008-sdp8.cpp \
+	$(M68000_CPU_DIR)/m68008-sip8.cpp
+
+.PHONY: regen-m68000
+regen-m68000: $(M68000_GEN_OUTPUTS)
+
+$(M68000_CPU_DIR)/m68000-decode.cpp: $(M68000_GEN_SCRIPT) $(M68000_GEN_LIST)
+	@echo Generating $@...
+	$(SILENT)$(PYTHON) $(M68000_GEN_SCRIPT) decode $(M68000_GEN_LIST) $@
+
+$(M68000_CPU_DIR)/m68000-head.h: $(M68000_GEN_SCRIPT) $(M68000_GEN_LIST)
+	@echo Generating $@...
+	$(SILENT)$(PYTHON) $(M68000_GEN_SCRIPT) header $(M68000_GEN_LIST) $@
+
+$(M68000_CPU_DIR)/m68000-sdf.cpp: $(M68000_GEN_SCRIPT) $(M68000_GEN_LIST)
+	@echo Generating $@...
+	$(SILENT)$(PYTHON) $(M68000_GEN_SCRIPT) sdf $(M68000_GEN_LIST) $@
+
+$(M68000_CPU_DIR)/m68000-sif.cpp: $(M68000_GEN_SCRIPT) $(M68000_GEN_LIST)
+	@echo Generating $@...
+	$(SILENT)$(PYTHON) $(M68000_GEN_SCRIPT) sif $(M68000_GEN_LIST) $@
+
+$(M68000_CPU_DIR)/m68000-sdp.cpp: $(M68000_GEN_SCRIPT) $(M68000_GEN_LIST)
+	@echo Generating $@...
+	$(SILENT)$(PYTHON) $(M68000_GEN_SCRIPT) sdp $(M68000_GEN_LIST) $@
+
+$(M68000_CPU_DIR)/m68000-sip.cpp: $(M68000_GEN_SCRIPT) $(M68000_GEN_LIST)
+	@echo Generating $@...
+	$(SILENT)$(PYTHON) $(M68000_GEN_SCRIPT) sip $(M68000_GEN_LIST) $@
+
+$(M68000_CPU_DIR)/m68000mcu-head.h: $(M68000_GEN_SCRIPT) $(M68000_GEN_LIST)
+	@echo Generating $@...
+	$(SILENT)$(PYTHON) $(M68000_GEN_SCRIPT) headerm $(M68000_GEN_LIST) $@
+
+$(M68000_CPU_DIR)/m68000mcu-sdfm.cpp: $(M68000_GEN_SCRIPT) $(M68000_GEN_LIST)
+	@echo Generating $@...
+	$(SILENT)$(PYTHON) $(M68000_GEN_SCRIPT) sdfm $(M68000_GEN_LIST) $@
+
+$(M68000_CPU_DIR)/m68000mcu-sifm.cpp: $(M68000_GEN_SCRIPT) $(M68000_GEN_LIST)
+	@echo Generating $@...
+	$(SILENT)$(PYTHON) $(M68000_GEN_SCRIPT) sifm $(M68000_GEN_LIST) $@
+
+$(M68000_CPU_DIR)/m68000mcu-sdpm.cpp: $(M68000_GEN_SCRIPT) $(M68000_GEN_LIST)
+	@echo Generating $@...
+	$(SILENT)$(PYTHON) $(M68000_GEN_SCRIPT) sdpm $(M68000_GEN_LIST) $@
+
+$(M68000_CPU_DIR)/m68000mcu-sipm.cpp: $(M68000_GEN_SCRIPT) $(M68000_GEN_LIST)
+	@echo Generating $@...
+	$(SILENT)$(PYTHON) $(M68000_GEN_SCRIPT) sipm $(M68000_GEN_LIST) $@
+
+$(M68000_CPU_DIR)/m68008-head.h: $(M68000_GEN_SCRIPT) $(M68000_GEN_LIST)
+	@echo Generating $@...
+	$(SILENT)$(PYTHON) $(M68000_GEN_SCRIPT) header8 $(M68000_GEN_LIST) $@
+
+$(M68000_CPU_DIR)/m68008-sdf8.cpp: $(M68000_GEN_SCRIPT) $(M68000_GEN_LIST)
+	@echo Generating $@...
+	$(SILENT)$(PYTHON) $(M68000_GEN_SCRIPT) sdf8 $(M68000_GEN_LIST) $@
+
+$(M68000_CPU_DIR)/m68008-sif8.cpp: $(M68000_GEN_SCRIPT) $(M68000_GEN_LIST)
+	@echo Generating $@...
+	$(SILENT)$(PYTHON) $(M68000_GEN_SCRIPT) sif8 $(M68000_GEN_LIST) $@
+
+$(M68000_CPU_DIR)/m68008-sdp8.cpp: $(M68000_GEN_SCRIPT) $(M68000_GEN_LIST)
+	@echo Generating $@...
+	$(SILENT)$(PYTHON) $(M68000_GEN_SCRIPT) sdp8 $(M68000_GEN_LIST) $@
+
+$(M68000_CPU_DIR)/m68008-sip8.cpp: $(M68000_GEN_SCRIPT) $(M68000_GEN_LIST)
+	@echo Generating $@...
+	$(SILENT)$(PYTHON) $(M68000_GEN_SCRIPT) sip8 $(M68000_GEN_LIST) $@
 
 ifneq ($(NEW_GIT_VERSION),$(OLD_GIT_VERSION))
 stale:

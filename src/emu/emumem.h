@@ -20,6 +20,7 @@
 #include "notifier.h"
 
 #include <cstdlib>
+#include <functional>
 #include <optional>
 #include <set>
 #include <type_traits>
@@ -1697,13 +1698,18 @@ public:
 		m_space(nullptr),
 		m_addrmask(0),
 		m_dispatch_read(nullptr),
-		m_dispatch_write(nullptr)
+		m_dispatch_write(nullptr),
+		m_telemetry_read(nullptr),
+		m_telemetry_write(nullptr)
 	{
 	}
 
 	address_space &space() const {
 		return *m_space;
 	}
+
+	template <typename T> void set_telemetry_read(T &&callback) { m_telemetry_read = std::forward<T>(callback); }
+	template <typename T> void set_telemetry_write(T &&callback) { m_telemetry_write = std::forward<T>(callback); }
 
 	auto rop()   { return [this](offs_t offset, NativeType mask) -> NativeType { return read_native(offset, mask); }; }
 	auto ropf()  { return [this](offs_t offset, NativeType mask) -> std::pair<NativeType, u16> { return read_native_flags(offset, mask); }; }
@@ -1804,11 +1810,17 @@ public:
 	u16 lookup_write_qword_unaligned_flags(offs_t address, u64 mask) { return lookup_memory_write_generic_flags<Width, AddrShift, Endian, 3, false>(lwopf(), address, mask); }
 
 	NativeType read_interruptible(offs_t address, NativeType mask = ~NativeType(0)) {
-		return dispatch_read_interruptible<Level, Width, AddrShift>(~offs_t(0), address & m_addrmask, mask, m_dispatch_read);
+		offs_t const masked_address = address & m_addrmask;
+		if(m_telemetry_read)
+			m_telemetry_read(masked_address, mask);
+		return dispatch_read_interruptible<Level, Width, AddrShift>(~offs_t(0), masked_address, mask, m_dispatch_read);
 	}
 
 	void write_interruptible(offs_t address, NativeType data, NativeType mask = ~NativeType(0)) {
-		dispatch_write_interruptible<Level, Width, AddrShift>(~offs_t(0), address & m_addrmask, data, mask, m_dispatch_write);
+		offs_t const masked_address = address & m_addrmask;
+		if(m_telemetry_write)
+			m_telemetry_write(masked_address, mask);
+		dispatch_write_interruptible<Level, Width, AddrShift>(~offs_t(0), masked_address, data, mask, m_dispatch_write);
 	}
 
 private:
@@ -1818,21 +1830,35 @@ private:
 
 	const handler_entry_read<Width, AddrShift> *const *m_dispatch_read;
 	const handler_entry_write<Width, AddrShift> *const *m_dispatch_write;
+	std::function<void(offs_t, NativeType)> m_telemetry_read;
+	std::function<void(offs_t, NativeType)> m_telemetry_write;
 
 	NativeType read_native(offs_t address, NativeType mask = ~NativeType(0)) {
-		return dispatch_read<Level, Width, AddrShift>(~offs_t(0), address & m_addrmask, mask, m_dispatch_read);
+		offs_t const masked_address = address & m_addrmask;
+		if(m_telemetry_read)
+			m_telemetry_read(masked_address, mask);
+		return dispatch_read<Level, Width, AddrShift>(~offs_t(0), masked_address, mask, m_dispatch_read);
 	}
 
 	void write_native(offs_t address, NativeType data, NativeType mask = ~NativeType(0)) {
-		dispatch_write<Level, Width, AddrShift>(~offs_t(0), address & m_addrmask, data, mask, m_dispatch_write);
+		offs_t const masked_address = address & m_addrmask;
+		if(m_telemetry_write)
+			m_telemetry_write(masked_address, mask);
+		dispatch_write<Level, Width, AddrShift>(~offs_t(0), masked_address, data, mask, m_dispatch_write);
 	}
 
 	std::pair<NativeType, u16> read_native_flags(offs_t address, NativeType mask = ~NativeType(0)) {
-		return dispatch_read_flags<Level, Width, AddrShift>(~offs_t(0), address & m_addrmask, mask, m_dispatch_read);
+		offs_t const masked_address = address & m_addrmask;
+		if(m_telemetry_read)
+			m_telemetry_read(masked_address, mask);
+		return dispatch_read_flags<Level, Width, AddrShift>(~offs_t(0), masked_address, mask, m_dispatch_read);
 	}
 
 	u16 write_native_flags(offs_t address, NativeType data, NativeType mask = ~NativeType(0)) {
-		return dispatch_write_flags<Level, Width, AddrShift>(~offs_t(0), address & m_addrmask, data, mask, m_dispatch_write);
+		offs_t const masked_address = address & m_addrmask;
+		if(m_telemetry_write)
+			m_telemetry_write(masked_address, mask);
+		return dispatch_write_flags<Level, Width, AddrShift>(~offs_t(0), masked_address, data, mask, m_dispatch_write);
 	}
 
 	u16 lookup_read_native_flags(offs_t address, NativeType mask = ~NativeType(0)) {
