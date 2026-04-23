@@ -621,6 +621,10 @@ void m68000_device::device_start()
 				m_r_program.set_telemetry_write(write_cb);
 				m_r_uprogram.set_telemetry_read(read_cb);
 				m_r_uprogram.set_telemetry_write(write_cb);
+				// PC-relative and immediate operand fetches are routed through the
+				// opcode spaces, so trace them too.
+				m_r_opcodes.set_telemetry_read(read_cb);
+				m_r_uopcodes.set_telemetry_read(read_cb);
 				m_program.set_telemetry_read(read_cb);
 				m_program.set_telemetry_write(write_cb);
 				m_telemetry_enabled = true;
