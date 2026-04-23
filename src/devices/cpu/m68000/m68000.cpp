@@ -6,6 +6,7 @@
 #include "m68kdasm.h"
 #include "fileio.h"
 
+#include <array>
 #include <cstring>
 #include <string_view>
 
@@ -19,6 +20,77 @@ constexpr u64 TELEMETRY_READ_LONG   = 0x00000400ULL;
 constexpr u64 TELEMETRY_WRITE_BYTE  = 0x00010000ULL;
 constexpr u64 TELEMETRY_WRITE_WORD  = 0x00020000ULL;
 constexpr u64 TELEMETRY_WRITE_LONG  = 0x00040000ULL;
+constexpr u32 TELEMETRY_IO_CHUNK_WORDS = 4096;
+
+u32 telemetry_read_little_endian(emu_file &file, u64 *destination, u32 word_count)
+{
+	std::array<u8, TELEMETRY_IO_CHUNK_WORDS * sizeof(u64)> chunk{};
+	u32 words_read = 0;
+
+	while(words_read < word_count) {
+		u32 const remaining_words = word_count - words_read;
+		u32 const chunk_words = remaining_words < TELEMETRY_IO_CHUNK_WORDS ? remaining_words : TELEMETRY_IO_CHUNK_WORDS;
+		u32 const chunk_bytes = chunk_words * sizeof(u64);
+		u32 const actual_bytes = file.read(chunk.data(), chunk_bytes);
+		u32 const whole_words = actual_bytes / sizeof(u64);
+
+		for(u32 index = 0; index < whole_words; index++) {
+			u64 value;
+			memcpy(&value, chunk.data() + (index * sizeof(u64)), sizeof(value));
+			destination[words_read + index] = little_endianize_int64(value);
+		}
+		words_read += whole_words;
+
+		u32 const trailing_bytes = actual_bytes % sizeof(u64);
+		if(trailing_bytes && words_read < word_count) {
+			u64 value = 0;
+			memcpy(&value, chunk.data() + (whole_words * sizeof(u64)), trailing_bytes);
+			destination[words_read++] = little_endianize_int64(value);
+		}
+
+		if(actual_bytes < chunk_bytes)
+			break;
+	}
+
+	return words_read;
+}
+
+void telemetry_write_little_endian(emu_file &file, u64 const *source, u32 word_count)
+{
+	std::array<u64, TELEMETRY_IO_CHUNK_WORDS> chunk{};
+
+	for(u32 words_written = 0; words_written < word_count; ) {
+		u32 const remaining_words = word_count - words_written;
+		u32 const chunk_words = remaining_words < TELEMETRY_IO_CHUNK_WORDS ? remaining_words : TELEMETRY_IO_CHUNK_WORDS;
+
+		for(u32 index = 0; index < chunk_words; index++)
+			chunk[index] = little_endianize_int64(source[words_written + index]);
+
+		file.write(chunk.data(), chunk_words * sizeof(u64));
+		words_written += chunk_words;
+	}
+}
+
+void copy_region_logical_bytes(memory_region &region, u8 *destination, u32 byte_count)
+{
+	u8 const *const source = region.base();
+	u32 const bytewidth = region.bytewidth();
+
+	if(byte_count == 0)
+		return;
+
+	if(bytewidth <= 1 || region.endianness() == ENDIANNESS_NATIVE) {
+		memcpy(destination, source, byte_count);
+		return;
+	}
+
+	for(u32 base = 0; base < byte_count; base += bytewidth) {
+		u32 const remaining = byte_count - base;
+		u32 const chunk = remaining < bytewidth ? remaining : bytewidth;
+		for(u32 offset = 0; offset < chunk; offset++)
+			destination[base + offset] = source[base + (chunk - 1 - offset)];
+	}
+}
 
 } // anonymous namespace
 
@@ -533,17 +605,14 @@ void m68000_device::device_start()
 				m_memory_snapshot = std::make_unique<u8[]>(m_telemetry_rom_size);
 				m_telemetry = std::make_unique<u64[]>(m_telemetry_rom_size);
 				m_memory_source = std::make_unique<s32[]>(0x1000000);
-				memcpy(m_memory_snapshot.get(), region->base(), m_telemetry_rom_size);
+				copy_region_logical_bytes(*region, m_memory_snapshot.get(), m_telemetry_rom_size);
 				memset(m_telemetry.get(), 0, m_telemetry_rom_size * sizeof(u64));
 				memset(m_memory_source.get(), 0xff, 0x1000000 * sizeof(s32));
 				telemetry_clear_sources();
 
 				emu_file telemetry_file(OPEN_FLAG_READ);
 				if(!telemetry_file.open(machine().basename() + ".telemetry")) {
-					u32 const telemetry_bytes = m_telemetry_rom_size * sizeof(u64);
-					u32 const file_bytes = telemetry_file.size() > telemetry_bytes ? telemetry_bytes : u32(telemetry_file.size());
-					if(file_bytes)
-						telemetry_file.read(m_telemetry.get(), file_bytes);
+					telemetry_read_little_endian(telemetry_file, m_telemetry.get(), m_telemetry_rom_size);
 				}
 
 				auto const read_cb = [this] (offs_t address, u16 mask) { telemetry_record_data_access(address, mask, false); };
@@ -573,7 +642,7 @@ void m68000_device::device_stop()
 
 	emu_file telemetry_file(OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS);
 	if(!telemetry_file.open(machine().basename() + ".telemetry"))
-		telemetry_file.write(m_telemetry.get(), m_telemetry_rom_size * sizeof(u64));
+		telemetry_write_little_endian(telemetry_file, m_telemetry.get(), m_telemetry_rom_size);
 }
 
 void m68000_device::state_import(const device_state_entry &entry)
