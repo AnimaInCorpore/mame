@@ -3073,7 +3073,7 @@ void drcbe_x64::op_read(Assembler &a, const instruction &inst)
 
 	// set up a call to the read handler
 	auto const &accessors = m_memory_accessors[spacesizep.space()];
-	bool const have_specific = (uintptr_t(nullptr) != accessors.specific.read.function) || accessors.specific.read.is_virtual;
+	bool const have_specific = (uintptr_t(0) != accessors.specific.read.function) || accessors.specific.read.is_virtual;
 	mov_reg_param(a, gpd(REG_PARAM2), addrp);
 	if (have_specific && ((1 << spacesizep.size()) == accessors.specific.native_bytes))
 	{
@@ -3249,7 +3249,7 @@ void drcbe_x64::op_readm(Assembler &a, const instruction &inst)
 
 	// set up a call to the read handler
 	auto const &accessors = m_memory_accessors[spacesizep.space()];
-	bool const have_specific = (uintptr_t(nullptr) != accessors.specific.read.function) || accessors.specific.read.is_virtual;
+	bool const have_specific = (uintptr_t(0) != accessors.specific.read.function) || accessors.specific.read.is_virtual;
 	mov_reg_param(a, gpd(REG_PARAM2), addrp);
 	if (spacesizep.size() != SIZE_QWORD)
 		mov_reg_param(a, gpd(REG_PARAM3), maskp);
@@ -3414,7 +3414,7 @@ void drcbe_x64::op_write(Assembler &a, const instruction &inst)
 
 	// set up a call to the write handler
 	auto const &accessors = m_memory_accessors[spacesizep.space()];
-	bool const have_specific = (uintptr_t(nullptr) != accessors.specific.write.function) || accessors.specific.write.is_virtual;
+	bool const have_specific = (uintptr_t(0) != accessors.specific.write.function) || accessors.specific.write.is_virtual;
 	mov_reg_param(a, gpd(REG_PARAM2), addrp);
 	if (spacesizep.size() != SIZE_QWORD)
 		mov_reg_param(a, gpd(REG_PARAM3), srcp);
@@ -3551,7 +3551,7 @@ void drcbe_x64::op_writem(Assembler &a, const instruction &inst)
 
 	// set up a call to the write handler
 	auto const &accessors = m_memory_accessors[spacesizep.space()];
-	bool const have_specific = (uintptr_t(nullptr) != accessors.specific.write.function) || accessors.specific.write.is_virtual;
+	bool const have_specific = (uintptr_t(0) != accessors.specific.write.function) || accessors.specific.write.is_virtual;
 	mov_reg_param(a, gpd(REG_PARAM2), addrp);
 	if (spacesizep.size() != SIZE_QWORD)
 		mov_reg_param(a, gpd(REG_PARAM3), srcp);

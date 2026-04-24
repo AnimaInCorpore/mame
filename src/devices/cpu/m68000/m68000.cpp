@@ -248,6 +248,11 @@ s32 m68000_device::telemetry_resolve_source(s32 source) const noexcept
 	return resolved == -1 ? source : resolved;
 }
 
+s32 m68000_device::telemetry_merge_source(s32 first, s32 second) const noexcept
+{
+	return first >= 0 ? first : second;
+}
+
 void m68000_device::telemetry_store_memory_source(offs_t address, s32 source)
 {
 	if(!m_memory_source)
@@ -285,6 +290,9 @@ void m68000_device::telemetry_flush_pending()
 
 void m68000_device::telemetry_record_data_access(offs_t address, u16 mem_mask, bool write)
 {
+	if(!write)
+		m_telemetry_last_read_source = -1;
+
 	if(!m_telemetry_enabled || !m_telemetry || machine().side_effects_disabled())
 		return;
 
@@ -332,6 +340,28 @@ void m68000_device::telemetry_record_data_access(offs_t address, u16 mem_mask, b
 	m_telemetry_pending.valid = true;
 	if(!write)
 		m_telemetry_last_read_source = m_telemetry_pending.source;
+}
+
+void m68000_device::telemetry_record_opcode_access(offs_t address, u16 mem_mask)
+{
+	m_telemetry_last_read_source = -1;
+
+	if(!m_telemetry_enabled || !m_telemetry || machine().side_effects_disabled())
+		return;
+
+	offs_t const source_address = mem_mask != 0xffff
+			? address + ((mem_mask & 0x00ff) ? 1 : 0)
+			: address & ~offs_t(1);
+	offs_t const pc = m_pc & ~offs_t(1);
+
+	if(source_address != pc && source_address != ((m_pc + 2) & ~offs_t(1))) {
+		telemetry_record_data_access(address, mem_mask, false);
+		return;
+	}
+
+	telemetry_flush_pending();
+
+	m_telemetry_last_read_source = telemetry_resolve_source(source_address);
 }
 
 void m68000_device::telemetry_clear_sources()
@@ -390,6 +420,7 @@ void m68000_device::execute_run()
 				m_irdi = m_ird;
 				m_ird_source = m_ipc;
 				m_irc_source = m_pc;
+				m_dbin_source = m_pc;
 				m_pc_source = m_pc;
 				m_telemetry_last_read_source = -1;
 				m_telemetry_current_write_source = -1;
@@ -615,18 +646,21 @@ void m68000_device::device_start()
 					telemetry_read_little_endian(telemetry_file, m_telemetry.get(), m_telemetry_rom_size);
 				}
 
-				auto const read_cb = [this] (offs_t address, u16 mask) { telemetry_record_data_access(address, mask, false); };
-				auto const write_cb = [this] (offs_t address, u16 mask) { telemetry_record_data_access(address, mask, true); };
-				m_r_program.set_telemetry_read(read_cb);
-				m_r_program.set_telemetry_write(write_cb);
-				m_r_uprogram.set_telemetry_read(read_cb);
-				m_r_uprogram.set_telemetry_write(write_cb);
-				// PC-relative and immediate operand fetches are routed through the
-				// opcode spaces, so trace them too.
-				m_r_opcodes.set_telemetry_read(read_cb);
-				m_r_uopcodes.set_telemetry_read(read_cb);
-				m_program.set_telemetry_read(read_cb);
-				m_program.set_telemetry_write(write_cb);
+				auto const data_read_cb = [this] (offs_t address, u16 mask) { telemetry_record_data_access(address, mask, false); };
+				auto const data_write_cb = [this] (offs_t address, u16 mask) { telemetry_record_data_access(address, mask, true); };
+				auto const opcode_read_cb = [this] (offs_t address, u16 mask) { telemetry_record_opcode_access(address, mask); };
+				m_r_program.set_telemetry_read(data_read_cb);
+				m_r_program.set_telemetry_write(data_write_cb);
+				m_r_uprogram.set_telemetry_read(data_read_cb);
+				m_r_uprogram.set_telemetry_write(data_write_cb);
+				// Sequential prefetches and extension-word fetches provide
+				// provenance only. PC-relative ROM data reads are routed through the
+				// same opcode spaces and are classified in the callback.
+				m_r_opcodes.set_telemetry_read(opcode_read_cb);
+				m_r_uopcodes.set_telemetry_read(opcode_read_cb);
+				m_program.set_telemetry_read(data_read_cb);
+				m_program.set_telemetry_write(data_write_cb);
+				m_opcodes.set_telemetry_read(opcode_read_cb);
 				m_telemetry_enabled = true;
 			}
 		}

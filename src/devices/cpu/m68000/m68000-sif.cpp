@@ -91,7 +91,7 @@ void m68000_device::state_reset_if()
 	update_user_super();
 	update_interrupt();
 	set_16l(m_da[16], m_dbin);
-	m_da_source[16] = m_dbin_source;
+	m_da_source[16] = telemetry_merge_source(m_da_source[16], m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R | SSW_N | SSW_CRITICAL;
@@ -455,7 +455,7 @@ void m68000_device::state_bus_error_if()
 	m_base_ssw = SSW_DATA | SSW_R | SSW_N | SSW_CRITICAL;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -482,7 +482,7 @@ void m68000_device::state_bus_error_if()
 	m_base_ssw = SSW_DATA | SSW_R | SSW_N | SSW_CRITICAL;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -813,7 +813,7 @@ void m68000_device::state_address_error_if()
 	m_base_ssw = SSW_DATA | SSW_R | SSW_N | SSW_CRITICAL;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -840,7 +840,7 @@ void m68000_device::state_address_error_if()
 	m_base_ssw = SSW_DATA | SSW_R | SSW_N | SSW_CRITICAL;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -1098,7 +1098,7 @@ void m68000_device::state_interrupt_if()
 	m_base_ssw = SSW_DATA | SSW_R | SSW_N;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -1125,7 +1125,7 @@ void m68000_device::state_interrupt_if()
 	m_base_ssw = SSW_DATA | SSW_R | SSW_N;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -1332,7 +1332,7 @@ void m68000_device::state_trace_if()
 	m_base_ssw = SSW_DATA | SSW_R | SSW_N;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -1359,7 +1359,7 @@ void m68000_device::state_trace_if()
 	m_base_ssw = SSW_DATA | SSW_R | SSW_N;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -1566,7 +1566,7 @@ void m68000_device::state_illegal_if()
 	m_base_ssw = SSW_DATA | SSW_R | SSW_N;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -1593,7 +1593,7 @@ void m68000_device::state_illegal_if()
 	m_base_ssw = SSW_DATA | SSW_R | SSW_N;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -1800,7 +1800,7 @@ void m68000_device::state_priviledge_if()
 	m_base_ssw = SSW_DATA | SSW_R | SSW_N;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -1827,7 +1827,7 @@ void m68000_device::state_priviledge_if()
 	m_base_ssw = SSW_DATA | SSW_R | SSW_N;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -2034,7 +2034,7 @@ void m68000_device::state_linea_if()
 	m_base_ssw = SSW_DATA | SSW_R | SSW_N;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -2061,7 +2061,7 @@ void m68000_device::state_linea_if()
 	m_base_ssw = SSW_DATA | SSW_R | SSW_N;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -2268,7 +2268,7 @@ void m68000_device::state_linef_if()
 	m_base_ssw = SSW_DATA | SSW_R | SSW_N;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -2295,7 +2295,7 @@ void m68000_device::state_linef_if()
 	m_base_ssw = SSW_DATA | SSW_R | SSW_N;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -2388,7 +2388,7 @@ void m68000_device::ori_b_imm8_ds_if() // 0000 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -2470,7 +2470,7 @@ void m68000_device::ori_b_imm8_ais_if() // 0010 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -2512,7 +2512,7 @@ void m68000_device::ori_b_imm8_ais_if() // 0010 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -2598,7 +2598,7 @@ void m68000_device::ori_b_imm8_aips_if() // 0018 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -2650,7 +2650,7 @@ void m68000_device::ori_b_imm8_aips_if() // 0018 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -2736,7 +2736,7 @@ void m68000_device::ori_b_imm8_pais_if() // 0020 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -2791,7 +2791,7 @@ void m68000_device::ori_b_imm8_pais_if() // 0020 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -2877,7 +2877,7 @@ void m68000_device::ori_b_imm8_das_if() // 0028 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -2948,7 +2948,7 @@ void m68000_device::ori_b_imm8_das_if() // 0028 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -3034,7 +3034,7 @@ void m68000_device::ori_b_imm8_dais_if() // 0030 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -3151,7 +3151,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -3236,7 +3236,7 @@ void m68000_device::ori_b_imm8_adr16_if() // 0038 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -3309,7 +3309,7 @@ void m68000_device::ori_b_imm8_adr16_if() // 0038 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -3394,7 +3394,7 @@ void m68000_device::ori_b_imm8_adr32_if() // 0039 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -3454,7 +3454,7 @@ void m68000_device::ori_b_imm8_adr32_if() // 0039 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -3494,7 +3494,7 @@ void m68000_device::ori_b_imm8_adr32_if() // 0039 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -3579,7 +3579,7 @@ void m68000_device::ori_imm8_ccr_if() // 003c ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -3715,7 +3715,7 @@ void m68000_device::ori_w_imm16_ds_if() // 0040 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=....... 8 a=31:m_dbin d=none
@@ -3797,7 +3797,7 @@ void m68000_device::ori_w_imm16_ais_if() // 0050 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=....... 8 a=31:m_dbin d=none
@@ -3837,7 +3837,7 @@ void m68000_device::ori_w_imm16_ais_if() // 0050 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -3933,7 +3933,7 @@ void m68000_device::ori_w_imm16_aips_if() // 0058 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=....... 8 a=31:m_dbin d=none
@@ -3983,7 +3983,7 @@ void m68000_device::ori_w_imm16_aips_if() // 0058 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -4079,7 +4079,7 @@ void m68000_device::ori_w_imm16_pais_if() // 0060 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=....... 8 a=31:m_dbin d=none
@@ -4132,7 +4132,7 @@ void m68000_device::ori_w_imm16_pais_if() // 0060 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -4228,7 +4228,7 @@ void m68000_device::ori_w_imm16_das_if() // 0068 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=....... 8 a=31:m_dbin d=none
@@ -4297,7 +4297,7 @@ void m68000_device::ori_w_imm16_das_if() // 0068 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -4393,7 +4393,7 @@ void m68000_device::ori_w_imm16_dais_if() // 0070 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=....... 8 a=31:m_dbin d=none
@@ -4508,7 +4508,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -4603,7 +4603,7 @@ void m68000_device::ori_w_imm16_adr16_if() // 0078 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=....... 8 a=31:m_dbin d=none
@@ -4674,7 +4674,7 @@ void m68000_device::ori_w_imm16_adr16_if() // 0078 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -4769,7 +4769,7 @@ void m68000_device::ori_w_imm16_adr32_if() // 0079 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=....... 8 a=31:m_dbin d=none
@@ -4829,7 +4829,7 @@ void m68000_device::ori_w_imm16_adr32_if() // 0079 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=14 c=0 m=.....  i=....... 8 a=9:m_dt d=31:m_dbin
@@ -4867,7 +4867,7 @@ void m68000_device::ori_w_imm16_adr32_if() // 0079 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -4966,7 +4966,7 @@ void m68000_device::ori_i16u_sr_if() // 007c ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=....... 8 a=31:m_dbin d=none
@@ -5131,7 +5131,7 @@ void m68000_device::ori_l_imm32_ds_if() // 0080 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=.l..... 8 a=31:m_dbin d=none
@@ -5251,7 +5251,7 @@ void m68000_device::ori_l_imm32_ais_if() // 0090 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=.l..... 8 a=31:m_dbin d=none
@@ -5287,7 +5287,7 @@ void m68000_device::ori_l_imm32_ais_if() // 0090 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -5319,7 +5319,7 @@ void m68000_device::ori_l_imm32_ais_if() // 0090 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -5471,7 +5471,7 @@ void m68000_device::ori_l_imm32_aips_if() // 0098 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=.l..... 8 a=31:m_dbin d=none
@@ -5507,7 +5507,7 @@ void m68000_device::ori_l_imm32_aips_if() // 0098 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -5545,7 +5545,7 @@ void m68000_device::ori_l_imm32_aips_if() // 0098 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -5697,7 +5697,7 @@ void m68000_device::ori_l_imm32_pais_if() // 00a0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=.l..... 8 a=31:m_dbin d=none
@@ -5740,7 +5740,7 @@ void m68000_device::ori_l_imm32_pais_if() // 00a0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -5772,7 +5772,7 @@ void m68000_device::ori_l_imm32_pais_if() // 00a0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -5924,7 +5924,7 @@ void m68000_device::ori_l_imm32_das_if() // 00a8 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=.l..... 8 a=31:m_dbin d=none
@@ -5987,7 +5987,7 @@ void m68000_device::ori_l_imm32_das_if() // 00a8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -6019,7 +6019,7 @@ void m68000_device::ori_l_imm32_das_if() // 00a8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -6171,7 +6171,7 @@ void m68000_device::ori_l_imm32_dais_if() // 00b0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=.l..... 8 a=31:m_dbin d=none
@@ -6280,7 +6280,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -6312,7 +6312,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -6463,7 +6463,7 @@ void m68000_device::ori_l_imm32_adr16_if() // 00b8 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=.l..... 8 a=31:m_dbin d=none
@@ -6534,7 +6534,7 @@ void m68000_device::ori_l_imm32_adr16_if() // 00b8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -6566,7 +6566,7 @@ void m68000_device::ori_l_imm32_adr16_if() // 00b8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -6717,7 +6717,7 @@ void m68000_device::ori_l_imm32_adr32_if() // 00b9 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=.l..... 8 a=31:m_dbin d=none
@@ -6777,7 +6777,7 @@ void m68000_device::ori_l_imm32_adr32_if() // 00b9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=14 c=0 m=.....  i=.l..... 8 a=9:m_dt d=31:m_dbin
@@ -6815,7 +6815,7 @@ void m68000_device::ori_l_imm32_adr32_if() // 00b9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -6847,7 +6847,7 @@ void m68000_device::ori_l_imm32_adr32_if() // 00b9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -7093,7 +7093,7 @@ void m68000_device::movep_w_das_dd_if() // 0108 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -7118,7 +7118,7 @@ void m68000_device::movep_w_das_dd_if() // 0108 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -7192,7 +7192,7 @@ void m68000_device::btst_dd_ais_if() // 0110 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -7281,7 +7281,7 @@ void m68000_device::btst_dd_aips_if() // 0118 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -7373,7 +7373,7 @@ void m68000_device::btst_dd_pais_if() // 0120 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -7481,7 +7481,7 @@ void m68000_device::btst_dd_das_if() // 0128 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -7635,7 +7635,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -7744,7 +7744,7 @@ void m68000_device::btst_dd_adr16_if() // 0138 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -7840,7 +7840,7 @@ void m68000_device::btst_dd_adr32_if() // 0139 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=2:m_da[rx] d=31:m_dbin
@@ -7880,7 +7880,7 @@ void m68000_device::btst_dd_adr32_if() // 0139 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -8207,7 +8207,7 @@ void m68000_device::btst_dd_imm_if() // 013c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -8284,7 +8284,7 @@ bcsr4:
 	m_ird_source = m_ir_source;
 	if(m_next_state != S_TRACE) m_next_state = m_int_next_state;
 	set_16l(m_dt, m_aluo);
-	m_dt_source = m_aluo_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_aluo_source);
 	// alu r=13 c=1 m=..z..  i=b....i. 1 a=alub d=36:m_dcro8
 	alu_and8(m_alub, 1 << (m_dcr & 7));
 	m_aluo_source = m_alub_source;
@@ -8451,7 +8451,7 @@ void m68000_device::movep_l_das_dd_if() // 0148 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -8474,7 +8474,7 @@ void m68000_device::movep_l_das_dd_if() // 0148 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -8499,7 +8499,7 @@ void m68000_device::movep_l_das_dd_if() // 0148 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -8524,7 +8524,7 @@ void m68000_device::movep_l_das_dd_if() // 0148 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -8598,7 +8598,7 @@ void m68000_device::bchg_dd_ais_if() // 0150 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -8708,7 +8708,7 @@ void m68000_device::bchg_dd_aips_if() // 0158 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -8821,7 +8821,7 @@ void m68000_device::bchg_dd_pais_if() // 0160 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -8950,7 +8950,7 @@ void m68000_device::bchg_dd_das_if() // 0168 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -9125,7 +9125,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -9255,7 +9255,7 @@ void m68000_device::bchg_dd_adr16_if() // 0178 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -9372,7 +9372,7 @@ void m68000_device::bchg_dd_adr32_if() // 0179 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=2:m_da[rx] d=31:m_dbin
@@ -9412,7 +9412,7 @@ void m68000_device::bchg_dd_adr32_if() // 0179 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -9737,7 +9737,7 @@ void m68000_device::bclr_dd_ais_if() // 0190 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -9853,7 +9853,7 @@ void m68000_device::bclr_dd_aips_if() // 0198 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -9972,7 +9972,7 @@ void m68000_device::bclr_dd_pais_if() // 01a0 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -10107,7 +10107,7 @@ void m68000_device::bclr_dd_das_if() // 01a8 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -10288,7 +10288,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -10424,7 +10424,7 @@ void m68000_device::bclr_dd_adr16_if() // 01b8 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -10547,7 +10547,7 @@ void m68000_device::bclr_dd_adr32_if() // 01b9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=14 c=0 m=.....  i=bl..... 8 a=2:m_da[rx] d=31:m_dbin
@@ -10587,7 +10587,7 @@ void m68000_device::bclr_dd_adr32_if() // 01b9 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -10950,7 +10950,7 @@ void m68000_device::bset_dd_ais_if() // 01d0 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -11060,7 +11060,7 @@ void m68000_device::bset_dd_aips_if() // 01d8 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -11173,7 +11173,7 @@ void m68000_device::bset_dd_pais_if() // 01e0 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -11302,7 +11302,7 @@ void m68000_device::bset_dd_das_if() // 01e8 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -11477,7 +11477,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -11607,7 +11607,7 @@ void m68000_device::bset_dd_adr16_if() // 01f8 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -11724,7 +11724,7 @@ void m68000_device::bset_dd_adr32_if() // 01f9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=2:m_da[rx] d=31:m_dbin
@@ -11764,7 +11764,7 @@ void m68000_device::bset_dd_adr32_if() // 01f9 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -11852,7 +11852,7 @@ void m68000_device::andi_b_imm8_ds_if() // 0200 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=b...... 1 a=31:m_dbin d=none
@@ -11934,7 +11934,7 @@ void m68000_device::andi_b_imm8_ais_if() // 0210 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=b...... 1 a=31:m_dbin d=none
@@ -11976,7 +11976,7 @@ void m68000_device::andi_b_imm8_ais_if() // 0210 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -12062,7 +12062,7 @@ void m68000_device::andi_b_imm8_aips_if() // 0218 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=b...... 1 a=31:m_dbin d=none
@@ -12114,7 +12114,7 @@ void m68000_device::andi_b_imm8_aips_if() // 0218 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -12200,7 +12200,7 @@ void m68000_device::andi_b_imm8_pais_if() // 0220 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=b...... 1 a=31:m_dbin d=none
@@ -12255,7 +12255,7 @@ void m68000_device::andi_b_imm8_pais_if() // 0220 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -12341,7 +12341,7 @@ void m68000_device::andi_b_imm8_das_if() // 0228 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=b...... 1 a=31:m_dbin d=none
@@ -12412,7 +12412,7 @@ void m68000_device::andi_b_imm8_das_if() // 0228 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -12498,7 +12498,7 @@ void m68000_device::andi_b_imm8_dais_if() // 0230 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=b...... 1 a=31:m_dbin d=none
@@ -12615,7 +12615,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -12700,7 +12700,7 @@ void m68000_device::andi_b_imm8_adr16_if() // 0238 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=b...... 1 a=31:m_dbin d=none
@@ -12773,7 +12773,7 @@ void m68000_device::andi_b_imm8_adr16_if() // 0238 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -12858,7 +12858,7 @@ void m68000_device::andi_b_imm8_adr32_if() // 0239 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=b...... 1 a=31:m_dbin d=none
@@ -12918,7 +12918,7 @@ void m68000_device::andi_b_imm8_adr32_if() // 0239 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=4 c=0 m=.....  i=b...... 1 a=9:m_dt d=31:m_dbin
@@ -12958,7 +12958,7 @@ void m68000_device::andi_b_imm8_adr32_if() // 0239 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -13043,7 +13043,7 @@ void m68000_device::andi_imm8_ccr_if() // 023c ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=b...... 1 a=31:m_dbin d=none
@@ -13179,7 +13179,7 @@ void m68000_device::andi_w_imm16_ds_if() // 0240 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=....... 1 a=31:m_dbin d=none
@@ -13261,7 +13261,7 @@ void m68000_device::andi_w_imm16_ais_if() // 0250 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=....... 1 a=31:m_dbin d=none
@@ -13301,7 +13301,7 @@ void m68000_device::andi_w_imm16_ais_if() // 0250 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -13397,7 +13397,7 @@ void m68000_device::andi_w_imm16_aips_if() // 0258 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=....... 1 a=31:m_dbin d=none
@@ -13447,7 +13447,7 @@ void m68000_device::andi_w_imm16_aips_if() // 0258 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -13543,7 +13543,7 @@ void m68000_device::andi_w_imm16_pais_if() // 0260 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=....... 1 a=31:m_dbin d=none
@@ -13596,7 +13596,7 @@ void m68000_device::andi_w_imm16_pais_if() // 0260 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -13692,7 +13692,7 @@ void m68000_device::andi_w_imm16_das_if() // 0268 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=....... 1 a=31:m_dbin d=none
@@ -13761,7 +13761,7 @@ void m68000_device::andi_w_imm16_das_if() // 0268 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -13857,7 +13857,7 @@ void m68000_device::andi_w_imm16_dais_if() // 0270 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=....... 1 a=31:m_dbin d=none
@@ -13972,7 +13972,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -14067,7 +14067,7 @@ void m68000_device::andi_w_imm16_adr16_if() // 0278 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=....... 1 a=31:m_dbin d=none
@@ -14138,7 +14138,7 @@ void m68000_device::andi_w_imm16_adr16_if() // 0278 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -14233,7 +14233,7 @@ void m68000_device::andi_w_imm16_adr32_if() // 0279 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=....... 1 a=31:m_dbin d=none
@@ -14293,7 +14293,7 @@ void m68000_device::andi_w_imm16_adr32_if() // 0279 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=4 c=0 m=.....  i=....... 1 a=9:m_dt d=31:m_dbin
@@ -14331,7 +14331,7 @@ void m68000_device::andi_w_imm16_adr32_if() // 0279 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -14430,7 +14430,7 @@ void m68000_device::andi_i16u_sr_if() // 027c ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=....... 1 a=31:m_dbin d=none
@@ -14595,7 +14595,7 @@ void m68000_device::andi_l_imm32_ds_if() // 0280 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=.l..... 1 a=31:m_dbin d=none
@@ -14715,7 +14715,7 @@ void m68000_device::andi_l_imm32_ais_if() // 0290 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=.l..... 1 a=31:m_dbin d=none
@@ -14751,7 +14751,7 @@ void m68000_device::andi_l_imm32_ais_if() // 0290 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -14783,7 +14783,7 @@ void m68000_device::andi_l_imm32_ais_if() // 0290 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -14935,7 +14935,7 @@ void m68000_device::andi_l_imm32_aips_if() // 0298 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=.l..... 1 a=31:m_dbin d=none
@@ -14971,7 +14971,7 @@ void m68000_device::andi_l_imm32_aips_if() // 0298 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -15009,7 +15009,7 @@ void m68000_device::andi_l_imm32_aips_if() // 0298 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -15161,7 +15161,7 @@ void m68000_device::andi_l_imm32_pais_if() // 02a0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=.l..... 1 a=31:m_dbin d=none
@@ -15204,7 +15204,7 @@ void m68000_device::andi_l_imm32_pais_if() // 02a0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -15236,7 +15236,7 @@ void m68000_device::andi_l_imm32_pais_if() // 02a0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -15388,7 +15388,7 @@ void m68000_device::andi_l_imm32_das_if() // 02a8 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=.l..... 1 a=31:m_dbin d=none
@@ -15451,7 +15451,7 @@ void m68000_device::andi_l_imm32_das_if() // 02a8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -15483,7 +15483,7 @@ void m68000_device::andi_l_imm32_das_if() // 02a8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -15635,7 +15635,7 @@ void m68000_device::andi_l_imm32_dais_if() // 02b0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=.l..... 1 a=31:m_dbin d=none
@@ -15744,7 +15744,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -15776,7 +15776,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -15927,7 +15927,7 @@ void m68000_device::andi_l_imm32_adr16_if() // 02b8 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=.l..... 1 a=31:m_dbin d=none
@@ -15998,7 +15998,7 @@ void m68000_device::andi_l_imm32_adr16_if() // 02b8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -16030,7 +16030,7 @@ void m68000_device::andi_l_imm32_adr16_if() // 02b8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -16181,7 +16181,7 @@ void m68000_device::andi_l_imm32_adr32_if() // 02b9 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=.l..... 1 a=31:m_dbin d=none
@@ -16241,7 +16241,7 @@ void m68000_device::andi_l_imm32_adr32_if() // 02b9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=4 c=0 m=.....  i=.l..... 1 a=9:m_dt d=31:m_dbin
@@ -16279,7 +16279,7 @@ void m68000_device::andi_l_imm32_adr32_if() // 02b9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -16311,7 +16311,7 @@ void m68000_device::andi_l_imm32_adr32_if() // 02b9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -16436,7 +16436,7 @@ void m68000_device::subi_b_imm8_ds_if() // 0400 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -16516,7 +16516,7 @@ void m68000_device::subi_b_imm8_ais_if() // 0410 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -16556,7 +16556,7 @@ void m68000_device::subi_b_imm8_ais_if() // 0410 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -16641,7 +16641,7 @@ void m68000_device::subi_b_imm8_aips_if() // 0418 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -16689,7 +16689,7 @@ void m68000_device::subi_b_imm8_aips_if() // 0418 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -16774,7 +16774,7 @@ void m68000_device::subi_b_imm8_pais_if() // 0420 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -16825,7 +16825,7 @@ void m68000_device::subi_b_imm8_pais_if() // 0420 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -16910,7 +16910,7 @@ void m68000_device::subi_b_imm8_das_if() // 0428 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -16978,7 +16978,7 @@ void m68000_device::subi_b_imm8_das_if() // 0428 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -17063,7 +17063,7 @@ void m68000_device::subi_b_imm8_dais_if() // 0430 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -17175,7 +17175,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -17259,7 +17259,7 @@ void m68000_device::subi_b_imm8_adr16_if() // 0438 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -17328,7 +17328,7 @@ void m68000_device::subi_b_imm8_adr16_if() // 0438 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -17412,7 +17412,7 @@ void m68000_device::subi_b_imm8_adr32_if() // 0439 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -17470,7 +17470,7 @@ void m68000_device::subi_b_imm8_adr32_if() // 0439 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -17507,7 +17507,7 @@ void m68000_device::subi_b_imm8_adr32_if() // 0439 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -17592,7 +17592,7 @@ void m68000_device::subi_w_imm16_ds_if() // 0440 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -17672,7 +17672,7 @@ void m68000_device::subi_w_imm16_ais_if() // 0450 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -17710,7 +17710,7 @@ void m68000_device::subi_w_imm16_ais_if() // 0450 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -17805,7 +17805,7 @@ void m68000_device::subi_w_imm16_aips_if() // 0458 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -17851,7 +17851,7 @@ void m68000_device::subi_w_imm16_aips_if() // 0458 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -17946,7 +17946,7 @@ void m68000_device::subi_w_imm16_pais_if() // 0460 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -17995,7 +17995,7 @@ void m68000_device::subi_w_imm16_pais_if() // 0460 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -18090,7 +18090,7 @@ void m68000_device::subi_w_imm16_das_if() // 0468 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -18156,7 +18156,7 @@ void m68000_device::subi_w_imm16_das_if() // 0468 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -18251,7 +18251,7 @@ void m68000_device::subi_w_imm16_dais_if() // 0470 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -18361,7 +18361,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -18455,7 +18455,7 @@ void m68000_device::subi_w_imm16_adr16_if() // 0478 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -18522,7 +18522,7 @@ void m68000_device::subi_w_imm16_adr16_if() // 0478 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -18616,7 +18616,7 @@ void m68000_device::subi_w_imm16_adr32_if() // 0479 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -18674,7 +18674,7 @@ void m68000_device::subi_w_imm16_adr32_if() // 0479 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -18709,7 +18709,7 @@ void m68000_device::subi_w_imm16_adr32_if() // 0479 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -18830,7 +18830,7 @@ void m68000_device::subi_l_imm32_ds_if() // 0480 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -18946,7 +18946,7 @@ void m68000_device::subi_l_imm32_ais_if() // 0490 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -18981,7 +18981,7 @@ void m68000_device::subi_l_imm32_ais_if() // 0490 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -19012,7 +19012,7 @@ void m68000_device::subi_l_imm32_ais_if() // 0490 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -19162,7 +19162,7 @@ void m68000_device::subi_l_imm32_aips_if() // 0498 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -19197,7 +19197,7 @@ void m68000_device::subi_l_imm32_aips_if() // 0498 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -19233,7 +19233,7 @@ void m68000_device::subi_l_imm32_aips_if() // 0498 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -19383,7 +19383,7 @@ void m68000_device::subi_l_imm32_pais_if() // 04a0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -19424,7 +19424,7 @@ void m68000_device::subi_l_imm32_pais_if() // 04a0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -19455,7 +19455,7 @@ void m68000_device::subi_l_imm32_pais_if() // 04a0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -19605,7 +19605,7 @@ void m68000_device::subi_l_imm32_das_if() // 04a8 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -19666,7 +19666,7 @@ void m68000_device::subi_l_imm32_das_if() // 04a8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -19697,7 +19697,7 @@ void m68000_device::subi_l_imm32_das_if() // 04a8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -19847,7 +19847,7 @@ void m68000_device::subi_l_imm32_dais_if() // 04b0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -19952,7 +19952,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -19983,7 +19983,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -20132,7 +20132,7 @@ void m68000_device::subi_l_imm32_adr16_if() // 04b8 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -20199,7 +20199,7 @@ void m68000_device::subi_l_imm32_adr16_if() // 04b8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -20230,7 +20230,7 @@ void m68000_device::subi_l_imm32_adr16_if() // 04b8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -20379,7 +20379,7 @@ void m68000_device::subi_l_imm32_adr32_if() // 04b9 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -20437,7 +20437,7 @@ void m68000_device::subi_l_imm32_adr32_if() // 04b9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -20472,7 +20472,7 @@ void m68000_device::subi_l_imm32_adr32_if() // 04b9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -20503,7 +20503,7 @@ void m68000_device::subi_l_imm32_adr32_if() // 04b9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -20627,7 +20627,7 @@ void m68000_device::addi_b_imm8_ds_if() // 0600 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -20707,7 +20707,7 @@ void m68000_device::addi_b_imm8_ais_if() // 0610 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -20747,7 +20747,7 @@ void m68000_device::addi_b_imm8_ais_if() // 0610 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -20832,7 +20832,7 @@ void m68000_device::addi_b_imm8_aips_if() // 0618 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -20880,7 +20880,7 @@ void m68000_device::addi_b_imm8_aips_if() // 0618 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -20965,7 +20965,7 @@ void m68000_device::addi_b_imm8_pais_if() // 0620 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -21016,7 +21016,7 @@ void m68000_device::addi_b_imm8_pais_if() // 0620 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -21101,7 +21101,7 @@ void m68000_device::addi_b_imm8_das_if() // 0628 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -21169,7 +21169,7 @@ void m68000_device::addi_b_imm8_das_if() // 0628 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -21254,7 +21254,7 @@ void m68000_device::addi_b_imm8_dais_if() // 0630 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -21366,7 +21366,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -21450,7 +21450,7 @@ void m68000_device::addi_b_imm8_adr16_if() // 0638 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -21519,7 +21519,7 @@ void m68000_device::addi_b_imm8_adr16_if() // 0638 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -21603,7 +21603,7 @@ void m68000_device::addi_b_imm8_adr32_if() // 0639 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -21661,7 +21661,7 @@ void m68000_device::addi_b_imm8_adr32_if() // 0639 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -21698,7 +21698,7 @@ void m68000_device::addi_b_imm8_adr32_if() // 0639 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -21783,7 +21783,7 @@ void m68000_device::addi_w_imm16_ds_if() // 0640 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -21863,7 +21863,7 @@ void m68000_device::addi_w_imm16_ais_if() // 0650 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -21901,7 +21901,7 @@ void m68000_device::addi_w_imm16_ais_if() // 0650 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -21996,7 +21996,7 @@ void m68000_device::addi_w_imm16_aips_if() // 0658 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -22042,7 +22042,7 @@ void m68000_device::addi_w_imm16_aips_if() // 0658 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -22137,7 +22137,7 @@ void m68000_device::addi_w_imm16_pais_if() // 0660 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -22186,7 +22186,7 @@ void m68000_device::addi_w_imm16_pais_if() // 0660 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -22281,7 +22281,7 @@ void m68000_device::addi_w_imm16_das_if() // 0668 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -22347,7 +22347,7 @@ void m68000_device::addi_w_imm16_das_if() // 0668 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -22442,7 +22442,7 @@ void m68000_device::addi_w_imm16_dais_if() // 0670 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -22552,7 +22552,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -22646,7 +22646,7 @@ void m68000_device::addi_w_imm16_adr16_if() // 0678 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -22713,7 +22713,7 @@ void m68000_device::addi_w_imm16_adr16_if() // 0678 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -22807,7 +22807,7 @@ void m68000_device::addi_w_imm16_adr32_if() // 0679 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -22865,7 +22865,7 @@ void m68000_device::addi_w_imm16_adr32_if() // 0679 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -22900,7 +22900,7 @@ void m68000_device::addi_w_imm16_adr32_if() // 0679 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -23021,7 +23021,7 @@ void m68000_device::addi_l_imm32_ds_if() // 0680 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -23137,7 +23137,7 @@ void m68000_device::addi_l_imm32_ais_if() // 0690 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -23172,7 +23172,7 @@ void m68000_device::addi_l_imm32_ais_if() // 0690 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -23203,7 +23203,7 @@ void m68000_device::addi_l_imm32_ais_if() // 0690 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -23353,7 +23353,7 @@ void m68000_device::addi_l_imm32_aips_if() // 0698 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -23388,7 +23388,7 @@ void m68000_device::addi_l_imm32_aips_if() // 0698 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -23424,7 +23424,7 @@ void m68000_device::addi_l_imm32_aips_if() // 0698 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -23574,7 +23574,7 @@ void m68000_device::addi_l_imm32_pais_if() // 06a0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -23615,7 +23615,7 @@ void m68000_device::addi_l_imm32_pais_if() // 06a0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -23646,7 +23646,7 @@ void m68000_device::addi_l_imm32_pais_if() // 06a0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -23796,7 +23796,7 @@ void m68000_device::addi_l_imm32_das_if() // 06a8 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -23857,7 +23857,7 @@ void m68000_device::addi_l_imm32_das_if() // 06a8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -23888,7 +23888,7 @@ void m68000_device::addi_l_imm32_das_if() // 06a8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -24038,7 +24038,7 @@ void m68000_device::addi_l_imm32_dais_if() // 06b0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -24143,7 +24143,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -24174,7 +24174,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -24323,7 +24323,7 @@ void m68000_device::addi_l_imm32_adr16_if() // 06b8 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -24390,7 +24390,7 @@ void m68000_device::addi_l_imm32_adr16_if() // 06b8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -24421,7 +24421,7 @@ void m68000_device::addi_l_imm32_adr16_if() // 06b8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -24570,7 +24570,7 @@ void m68000_device::addi_l_imm32_adr32_if() // 06b9 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -24628,7 +24628,7 @@ void m68000_device::addi_l_imm32_adr32_if() // 06b9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -24663,7 +24663,7 @@ void m68000_device::addi_l_imm32_adr32_if() // 06b9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -24694,7 +24694,7 @@ void m68000_device::addi_l_imm32_adr32_if() // 06b9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -24818,7 +24818,7 @@ void m68000_device::btst_imm8_ds_if() // 0800 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=....... 9 a=31:m_dbin d=none
@@ -24936,7 +24936,7 @@ void m68000_device::btst_imm8_ais_if() // 0810 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -24978,7 +24978,7 @@ void m68000_device::btst_imm8_ais_if() // 0810 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -25045,7 +25045,7 @@ void m68000_device::btst_imm8_aips_if() // 0818 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -25097,7 +25097,7 @@ void m68000_device::btst_imm8_aips_if() // 0818 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -25164,7 +25164,7 @@ void m68000_device::btst_imm8_pais_if() // 0820 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -25219,7 +25219,7 @@ void m68000_device::btst_imm8_pais_if() // 0820 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -25286,7 +25286,7 @@ void m68000_device::btst_imm8_das_if() // 0828 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -25357,7 +25357,7 @@ void m68000_device::btst_imm8_das_if() // 0828 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -25424,7 +25424,7 @@ void m68000_device::btst_imm8_dais_if() // 0830 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -25541,7 +25541,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -25607,7 +25607,7 @@ void m68000_device::btst_imm8_adr16_if() // 0838 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -25680,7 +25680,7 @@ void m68000_device::btst_imm8_adr16_if() // 0838 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -25746,7 +25746,7 @@ void m68000_device::btst_imm8_adr32_if() // 0839 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -25806,7 +25806,7 @@ void m68000_device::btst_imm8_adr32_if() // 0839 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=9:m_dt d=31:m_dbin
@@ -25846,7 +25846,7 @@ void m68000_device::btst_imm8_adr32_if() // 0839 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -25912,7 +25912,7 @@ void m68000_device::btst_imm8_dpc_if() // 083a ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -26048,7 +26048,7 @@ void m68000_device::btst_imm8_dpci_if() // 083b ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -26231,7 +26231,7 @@ void m68000_device::bchg_imm8_ds_if() // 0840 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=....... 9 a=31:m_dbin d=none
@@ -26358,7 +26358,7 @@ void m68000_device::bchg_imm8_ais_if() // 0850 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -26400,7 +26400,7 @@ void m68000_device::bchg_imm8_ais_if() // 0850 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -26488,7 +26488,7 @@ void m68000_device::bchg_imm8_aips_if() // 0858 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -26540,7 +26540,7 @@ void m68000_device::bchg_imm8_aips_if() // 0858 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -26628,7 +26628,7 @@ void m68000_device::bchg_imm8_pais_if() // 0860 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -26683,7 +26683,7 @@ void m68000_device::bchg_imm8_pais_if() // 0860 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -26771,7 +26771,7 @@ void m68000_device::bchg_imm8_das_if() // 0868 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -26842,7 +26842,7 @@ void m68000_device::bchg_imm8_das_if() // 0868 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -26930,7 +26930,7 @@ void m68000_device::bchg_imm8_dais_if() // 0870 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -27047,7 +27047,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -27134,7 +27134,7 @@ void m68000_device::bchg_imm8_adr16_if() // 0878 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -27207,7 +27207,7 @@ void m68000_device::bchg_imm8_adr16_if() // 0878 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -27294,7 +27294,7 @@ void m68000_device::bchg_imm8_adr32_if() // 0879 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -27354,7 +27354,7 @@ void m68000_device::bchg_imm8_adr32_if() // 0879 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=9:m_dt d=31:m_dbin
@@ -27394,7 +27394,7 @@ void m68000_device::bchg_imm8_adr32_if() // 0879 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -27482,7 +27482,7 @@ void m68000_device::bclr_imm8_ds_if() // 0880 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=.l..... 8 a=31:m_dbin d=none
@@ -27619,7 +27619,7 @@ void m68000_device::bclr_imm8_ais_if() // 0890 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=bl..... 8 a=31:m_dbin d=none
@@ -27661,7 +27661,7 @@ void m68000_device::bclr_imm8_ais_if() // 0890 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -27755,7 +27755,7 @@ void m68000_device::bclr_imm8_aips_if() // 0898 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=bl..... 8 a=31:m_dbin d=none
@@ -27807,7 +27807,7 @@ void m68000_device::bclr_imm8_aips_if() // 0898 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -27901,7 +27901,7 @@ void m68000_device::bclr_imm8_pais_if() // 08a0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=bl..... 8 a=31:m_dbin d=none
@@ -27956,7 +27956,7 @@ void m68000_device::bclr_imm8_pais_if() // 08a0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -28050,7 +28050,7 @@ void m68000_device::bclr_imm8_das_if() // 08a8 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=bl..... 8 a=31:m_dbin d=none
@@ -28121,7 +28121,7 @@ void m68000_device::bclr_imm8_das_if() // 08a8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -28215,7 +28215,7 @@ void m68000_device::bclr_imm8_dais_if() // 08b0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=bl..... 8 a=31:m_dbin d=none
@@ -28332,7 +28332,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -28425,7 +28425,7 @@ void m68000_device::bclr_imm8_adr16_if() // 08b8 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=bl..... 8 a=31:m_dbin d=none
@@ -28498,7 +28498,7 @@ void m68000_device::bclr_imm8_adr16_if() // 08b8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -28591,7 +28591,7 @@ void m68000_device::bclr_imm8_adr32_if() // 08b9 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=bl..... 8 a=31:m_dbin d=none
@@ -28651,7 +28651,7 @@ void m68000_device::bclr_imm8_adr32_if() // 08b9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=14 c=0 m=.....  i=bl..... 8 a=9:m_dt d=31:m_dbin
@@ -28691,7 +28691,7 @@ void m68000_device::bclr_imm8_adr32_if() // 08b9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -28785,7 +28785,7 @@ void m68000_device::bset_imm8_ds_if() // 08c0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=....... 8 a=31:m_dbin d=none
@@ -28912,7 +28912,7 @@ void m68000_device::bset_imm8_ais_if() // 08d0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -28954,7 +28954,7 @@ void m68000_device::bset_imm8_ais_if() // 08d0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -29042,7 +29042,7 @@ void m68000_device::bset_imm8_aips_if() // 08d8 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -29094,7 +29094,7 @@ void m68000_device::bset_imm8_aips_if() // 08d8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -29182,7 +29182,7 @@ void m68000_device::bset_imm8_pais_if() // 08e0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -29237,7 +29237,7 @@ void m68000_device::bset_imm8_pais_if() // 08e0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -29325,7 +29325,7 @@ void m68000_device::bset_imm8_das_if() // 08e8 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -29396,7 +29396,7 @@ void m68000_device::bset_imm8_das_if() // 08e8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -29484,7 +29484,7 @@ void m68000_device::bset_imm8_dais_if() // 08f0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -29601,7 +29601,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -29688,7 +29688,7 @@ void m68000_device::bset_imm8_adr16_if() // 08f8 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -29761,7 +29761,7 @@ void m68000_device::bset_imm8_adr16_if() // 08f8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -29848,7 +29848,7 @@ void m68000_device::bset_imm8_adr32_if() // 08f9 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -29908,7 +29908,7 @@ void m68000_device::bset_imm8_adr32_if() // 08f9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -29948,7 +29948,7 @@ void m68000_device::bset_imm8_adr32_if() // 08f9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -30036,7 +30036,7 @@ void m68000_device::eori_b_imm8_ds_if() // 0a00 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -30118,7 +30118,7 @@ void m68000_device::eori_b_imm8_ais_if() // 0a10 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -30160,7 +30160,7 @@ void m68000_device::eori_b_imm8_ais_if() // 0a10 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -30246,7 +30246,7 @@ void m68000_device::eori_b_imm8_aips_if() // 0a18 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -30298,7 +30298,7 @@ void m68000_device::eori_b_imm8_aips_if() // 0a18 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -30384,7 +30384,7 @@ void m68000_device::eori_b_imm8_pais_if() // 0a20 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -30439,7 +30439,7 @@ void m68000_device::eori_b_imm8_pais_if() // 0a20 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -30525,7 +30525,7 @@ void m68000_device::eori_b_imm8_das_if() // 0a28 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -30596,7 +30596,7 @@ void m68000_device::eori_b_imm8_das_if() // 0a28 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -30682,7 +30682,7 @@ void m68000_device::eori_b_imm8_dais_if() // 0a30 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -30799,7 +30799,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -30884,7 +30884,7 @@ void m68000_device::eori_b_imm8_adr16_if() // 0a38 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -30957,7 +30957,7 @@ void m68000_device::eori_b_imm8_adr16_if() // 0a38 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -31042,7 +31042,7 @@ void m68000_device::eori_b_imm8_adr32_if() // 0a39 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -31102,7 +31102,7 @@ void m68000_device::eori_b_imm8_adr32_if() // 0a39 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=9:m_dt d=31:m_dbin
@@ -31142,7 +31142,7 @@ void m68000_device::eori_b_imm8_adr32_if() // 0a39 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -31227,7 +31227,7 @@ void m68000_device::eori_imm8_ccr_if() // 0a3c ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=31:m_dbin d=none
@@ -31363,7 +31363,7 @@ void m68000_device::eori_w_imm16_ds_if() // 0a40 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=....... 9 a=31:m_dbin d=none
@@ -31445,7 +31445,7 @@ void m68000_device::eori_w_imm16_ais_if() // 0a50 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=....... 9 a=31:m_dbin d=none
@@ -31485,7 +31485,7 @@ void m68000_device::eori_w_imm16_ais_if() // 0a50 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -31581,7 +31581,7 @@ void m68000_device::eori_w_imm16_aips_if() // 0a58 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=....... 9 a=31:m_dbin d=none
@@ -31631,7 +31631,7 @@ void m68000_device::eori_w_imm16_aips_if() // 0a58 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -31727,7 +31727,7 @@ void m68000_device::eori_w_imm16_pais_if() // 0a60 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=....... 9 a=31:m_dbin d=none
@@ -31780,7 +31780,7 @@ void m68000_device::eori_w_imm16_pais_if() // 0a60 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -31876,7 +31876,7 @@ void m68000_device::eori_w_imm16_das_if() // 0a68 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=....... 9 a=31:m_dbin d=none
@@ -31945,7 +31945,7 @@ void m68000_device::eori_w_imm16_das_if() // 0a68 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -32041,7 +32041,7 @@ void m68000_device::eori_w_imm16_dais_if() // 0a70 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=....... 9 a=31:m_dbin d=none
@@ -32156,7 +32156,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -32251,7 +32251,7 @@ void m68000_device::eori_w_imm16_adr16_if() // 0a78 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=....... 9 a=31:m_dbin d=none
@@ -32322,7 +32322,7 @@ void m68000_device::eori_w_imm16_adr16_if() // 0a78 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -32417,7 +32417,7 @@ void m68000_device::eori_w_imm16_adr32_if() // 0a79 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=....... 9 a=31:m_dbin d=none
@@ -32477,7 +32477,7 @@ void m68000_device::eori_w_imm16_adr32_if() // 0a79 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=13 c=0 m=.....  i=....... 9 a=9:m_dt d=31:m_dbin
@@ -32515,7 +32515,7 @@ void m68000_device::eori_w_imm16_adr32_if() // 0a79 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -32614,7 +32614,7 @@ void m68000_device::eori_i16u_sr_if() // 0a7c ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=....... 9 a=31:m_dbin d=none
@@ -32779,7 +32779,7 @@ void m68000_device::eori_l_imm32_ds_if() // 0a80 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=.l..... 9 a=31:m_dbin d=none
@@ -32899,7 +32899,7 @@ void m68000_device::eori_l_imm32_ais_if() // 0a90 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=.l..... 9 a=31:m_dbin d=none
@@ -32935,7 +32935,7 @@ void m68000_device::eori_l_imm32_ais_if() // 0a90 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -32967,7 +32967,7 @@ void m68000_device::eori_l_imm32_ais_if() // 0a90 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -33119,7 +33119,7 @@ void m68000_device::eori_l_imm32_aips_if() // 0a98 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=.l..... 9 a=31:m_dbin d=none
@@ -33155,7 +33155,7 @@ void m68000_device::eori_l_imm32_aips_if() // 0a98 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -33193,7 +33193,7 @@ void m68000_device::eori_l_imm32_aips_if() // 0a98 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -33345,7 +33345,7 @@ void m68000_device::eori_l_imm32_pais_if() // 0aa0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=.l..... 9 a=31:m_dbin d=none
@@ -33388,7 +33388,7 @@ void m68000_device::eori_l_imm32_pais_if() // 0aa0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -33420,7 +33420,7 @@ void m68000_device::eori_l_imm32_pais_if() // 0aa0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -33572,7 +33572,7 @@ void m68000_device::eori_l_imm32_das_if() // 0aa8 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=.l..... 9 a=31:m_dbin d=none
@@ -33635,7 +33635,7 @@ void m68000_device::eori_l_imm32_das_if() // 0aa8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -33667,7 +33667,7 @@ void m68000_device::eori_l_imm32_das_if() // 0aa8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -33819,7 +33819,7 @@ void m68000_device::eori_l_imm32_dais_if() // 0ab0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=.l..... 9 a=31:m_dbin d=none
@@ -33928,7 +33928,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -33960,7 +33960,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -34111,7 +34111,7 @@ void m68000_device::eori_l_imm32_adr16_if() // 0ab8 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=.l..... 9 a=31:m_dbin d=none
@@ -34182,7 +34182,7 @@ void m68000_device::eori_l_imm32_adr16_if() // 0ab8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -34214,7 +34214,7 @@ void m68000_device::eori_l_imm32_adr16_if() // 0ab8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -34365,7 +34365,7 @@ void m68000_device::eori_l_imm32_adr32_if() // 0ab9 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=13 c=0 m=.....  i=.l..... 9 a=31:m_dbin d=none
@@ -34425,7 +34425,7 @@ void m68000_device::eori_l_imm32_adr32_if() // 0ab9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=13 c=0 m=.....  i=.l..... 9 a=9:m_dt d=31:m_dbin
@@ -34463,7 +34463,7 @@ void m68000_device::eori_l_imm32_adr32_if() // 0ab9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -34495,7 +34495,7 @@ void m68000_device::eori_l_imm32_adr32_if() // 0ab9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -34620,7 +34620,7 @@ void m68000_device::cmpi_b_imm8_ds_if() // 0c00 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -34698,7 +34698,7 @@ void m68000_device::cmpi_b_imm8_ais_if() // 0c10 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -34738,7 +34738,7 @@ void m68000_device::cmpi_b_imm8_ais_if() // 0c10 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -34804,7 +34804,7 @@ void m68000_device::cmpi_b_imm8_aips_if() // 0c18 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -34852,7 +34852,7 @@ void m68000_device::cmpi_b_imm8_aips_if() // 0c18 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -34918,7 +34918,7 @@ void m68000_device::cmpi_b_imm8_pais_if() // 0c20 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -34969,7 +34969,7 @@ void m68000_device::cmpi_b_imm8_pais_if() // 0c20 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -35035,7 +35035,7 @@ void m68000_device::cmpi_b_imm8_das_if() // 0c28 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -35103,7 +35103,7 @@ void m68000_device::cmpi_b_imm8_das_if() // 0c28 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -35169,7 +35169,7 @@ void m68000_device::cmpi_b_imm8_dais_if() // 0c30 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -35281,7 +35281,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -35346,7 +35346,7 @@ void m68000_device::cmpi_b_imm8_adr16_if() // 0c38 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -35415,7 +35415,7 @@ void m68000_device::cmpi_b_imm8_adr16_if() // 0c38 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -35480,7 +35480,7 @@ void m68000_device::cmpi_b_imm8_adr32_if() // 0c39 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -35538,7 +35538,7 @@ void m68000_device::cmpi_b_imm8_adr32_if() // 0c39 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -35575,7 +35575,7 @@ void m68000_device::cmpi_b_imm8_adr32_if() // 0c39 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -35641,7 +35641,7 @@ void m68000_device::cmpi_w_imm16_ds_if() // 0c40 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -35719,7 +35719,7 @@ void m68000_device::cmpi_w_imm16_ais_if() // 0c50 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -35757,7 +35757,7 @@ void m68000_device::cmpi_w_imm16_ais_if() // 0c50 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -35828,7 +35828,7 @@ void m68000_device::cmpi_w_imm16_aips_if() // 0c58 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -35874,7 +35874,7 @@ void m68000_device::cmpi_w_imm16_aips_if() // 0c58 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -35945,7 +35945,7 @@ void m68000_device::cmpi_w_imm16_pais_if() // 0c60 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -35994,7 +35994,7 @@ void m68000_device::cmpi_w_imm16_pais_if() // 0c60 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -36065,7 +36065,7 @@ void m68000_device::cmpi_w_imm16_das_if() // 0c68 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -36131,7 +36131,7 @@ void m68000_device::cmpi_w_imm16_das_if() // 0c68 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -36202,7 +36202,7 @@ void m68000_device::cmpi_w_imm16_dais_if() // 0c70 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -36312,7 +36312,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -36382,7 +36382,7 @@ void m68000_device::cmpi_w_imm16_adr16_if() // 0c78 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -36449,7 +36449,7 @@ void m68000_device::cmpi_w_imm16_adr16_if() // 0c78 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -36519,7 +36519,7 @@ void m68000_device::cmpi_w_imm16_adr32_if() // 0c79 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -36577,7 +36577,7 @@ void m68000_device::cmpi_w_imm16_adr32_if() // 0c79 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -36612,7 +36612,7 @@ void m68000_device::cmpi_w_imm16_adr32_if() // 0c79 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -36710,7 +36710,7 @@ void m68000_device::cmpi_l_imm32_ds_if() // 0c80 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -36820,7 +36820,7 @@ void m68000_device::cmpi_l_imm32_ais_if() // 0c90 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -36855,7 +36855,7 @@ void m68000_device::cmpi_l_imm32_ais_if() // 0c90 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -36886,7 +36886,7 @@ void m68000_device::cmpi_l_imm32_ais_if() // 0c90 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -36987,7 +36987,7 @@ void m68000_device::cmpi_l_imm32_aips_if() // 0c98 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -37022,7 +37022,7 @@ void m68000_device::cmpi_l_imm32_aips_if() // 0c98 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -37058,7 +37058,7 @@ void m68000_device::cmpi_l_imm32_aips_if() // 0c98 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -37159,7 +37159,7 @@ void m68000_device::cmpi_l_imm32_pais_if() // 0ca0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -37200,7 +37200,7 @@ void m68000_device::cmpi_l_imm32_pais_if() // 0ca0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -37231,7 +37231,7 @@ void m68000_device::cmpi_l_imm32_pais_if() // 0ca0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -37332,7 +37332,7 @@ void m68000_device::cmpi_l_imm32_das_if() // 0ca8 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -37393,7 +37393,7 @@ void m68000_device::cmpi_l_imm32_das_if() // 0ca8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -37424,7 +37424,7 @@ void m68000_device::cmpi_l_imm32_das_if() // 0ca8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -37525,7 +37525,7 @@ void m68000_device::cmpi_l_imm32_dais_if() // 0cb0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -37630,7 +37630,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -37661,7 +37661,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -37761,7 +37761,7 @@ void m68000_device::cmpi_l_imm32_adr16_if() // 0cb8 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -37828,7 +37828,7 @@ void m68000_device::cmpi_l_imm32_adr16_if() // 0cb8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -37859,7 +37859,7 @@ void m68000_device::cmpi_l_imm32_adr16_if() // 0cb8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -37959,7 +37959,7 @@ void m68000_device::cmpi_l_imm32_adr32_if() // 0cb9 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -38017,7 +38017,7 @@ void m68000_device::cmpi_l_imm32_adr32_if() // 0cb9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -38052,7 +38052,7 @@ void m68000_device::cmpi_l_imm32_adr32_if() // 0cb9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -38083,7 +38083,7 @@ void m68000_device::cmpi_l_imm32_adr32_if() // 0cb9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -38224,7 +38224,7 @@ void m68000_device::move_b_ais_dd_if() // 1010 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -38311,7 +38311,7 @@ void m68000_device::move_b_aips_dd_if() // 1018 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -38401,7 +38401,7 @@ void m68000_device::move_b_pais_dd_if() // 1020 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -38508,7 +38508,7 @@ void m68000_device::move_b_das_dd_if() // 1028 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -38659,7 +38659,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -38766,7 +38766,7 @@ void m68000_device::move_b_adr16_dd_if() // 1038 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -38862,7 +38862,7 @@ void m68000_device::move_b_adr32_dd_if() // 1039 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -38899,7 +38899,7 @@ void m68000_device::move_b_adr32_dd_if() // 1039 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -39223,7 +39223,7 @@ void m68000_device::move_b_imm8_dd_if() // 103c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -39389,7 +39389,7 @@ void m68000_device::move_b_ais_aid_if() // 1090 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -39494,7 +39494,7 @@ void m68000_device::move_b_aips_aid_if() // 1098 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -39602,7 +39602,7 @@ void m68000_device::move_b_pais_aid_if() // 10a0 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -39727,7 +39727,7 @@ void m68000_device::move_b_das_aid_if() // 10a8 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -39896,7 +39896,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -40021,7 +40021,7 @@ void m68000_device::move_b_adr16_aid_if() // 10b8 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -40135,7 +40135,7 @@ void m68000_device::move_b_adr32_aid_if() // 10b9 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -40172,7 +40172,7 @@ void m68000_device::move_b_adr32_aid_if() // 10b9 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -40550,7 +40550,7 @@ void m68000_device::move_b_imm8_aid_if() // 10bc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -40731,7 +40731,7 @@ void m68000_device::move_b_ais_aipd_if() // 10d0 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -40837,7 +40837,7 @@ void m68000_device::move_b_aips_aipd_if() // 10d8 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -40946,7 +40946,7 @@ void m68000_device::move_b_pais_aipd_if() // 10e0 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -41072,7 +41072,7 @@ void m68000_device::move_b_das_aipd_if() // 10e8 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -41242,7 +41242,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -41368,7 +41368,7 @@ void m68000_device::move_b_adr16_aipd_if() // 10f8 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -41483,7 +41483,7 @@ void m68000_device::move_b_adr32_aipd_if() // 10f9 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -41520,7 +41520,7 @@ void m68000_device::move_b_adr32_aipd_if() // 10f9 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -41901,7 +41901,7 @@ void m68000_device::move_b_imm8_aipd_if() // 10fc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -42081,7 +42081,7 @@ void m68000_device::move_b_ais_paid_if() // 1110 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -42187,7 +42187,7 @@ void m68000_device::move_b_aips_paid_if() // 1118 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -42296,7 +42296,7 @@ void m68000_device::move_b_pais_paid_if() // 1120 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -42422,7 +42422,7 @@ void m68000_device::move_b_das_paid_if() // 1128 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -42592,7 +42592,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -42718,7 +42718,7 @@ void m68000_device::move_b_adr16_paid_if() // 1138 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -42833,7 +42833,7 @@ void m68000_device::move_b_adr32_paid_if() // 1139 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -42870,7 +42870,7 @@ void m68000_device::move_b_adr32_paid_if() // 1139 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -43251,7 +43251,7 @@ void m68000_device::move_b_imm8_paid_if() // 113c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -43458,7 +43458,7 @@ void m68000_device::move_b_ais_dad_if() // 1150 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -43595,7 +43595,7 @@ void m68000_device::move_b_aips_dad_if() // 1158 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -43735,7 +43735,7 @@ void m68000_device::move_b_pais_dad_if() // 1160 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -43892,7 +43892,7 @@ void m68000_device::move_b_das_dad_if() // 1168 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -44093,7 +44093,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -44250,7 +44250,7 @@ void m68000_device::move_b_adr16_dad_if() // 1178 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -44396,7 +44396,7 @@ void m68000_device::move_b_adr32_dad_if() // 1179 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -44433,7 +44433,7 @@ void m68000_device::move_b_adr32_dad_if() // 1179 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -44907,7 +44907,7 @@ void m68000_device::move_b_imm8_dad_if() // 117c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -45187,7 +45187,7 @@ void m68000_device::move_b_ais_daid_if() // 1190 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -45368,7 +45368,7 @@ void m68000_device::move_b_aips_daid_if() // 1198 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -45552,7 +45552,7 @@ void m68000_device::move_b_pais_daid_if() // 11a0 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -45753,7 +45753,7 @@ void m68000_device::move_b_das_daid_if() // 11a8 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -45998,7 +45998,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -46199,7 +46199,7 @@ void m68000_device::move_b_adr16_daid_if() // 11b8 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -46389,7 +46389,7 @@ void m68000_device::move_b_adr32_daid_if() // 11b9 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -46426,7 +46426,7 @@ void m68000_device::move_b_adr32_daid_if() // 11b9 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -47032,7 +47032,7 @@ void m68000_device::move_b_imm8_daid_if() // 11bc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -47204,7 +47204,7 @@ void m68000_device::move_b_ds_adr16_if() // 11c0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_da[ry]);
-	m_at_source = m_da_source[ry];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[ry]);
 	m_au = ext32(m_dbin);
 	m_au_source = m_dbin_source;
 	// alu r=2 c=1 m=.nzvc  i=b....i. 1 a=4:m_da[ry] d=-1
@@ -47316,7 +47316,7 @@ void m68000_device::move_b_ais_adr16_if() // 11d0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -47452,7 +47452,7 @@ void m68000_device::move_b_aips_adr16_if() // 11d8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -47591,7 +47591,7 @@ void m68000_device::move_b_pais_adr16_if() // 11e0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -47747,7 +47747,7 @@ void m68000_device::move_b_das_adr16_if() // 11e8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -47947,7 +47947,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -48103,7 +48103,7 @@ void m68000_device::move_b_adr16_adr16_if() // 11f8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -48248,7 +48248,7 @@ void m68000_device::move_b_adr32_adr16_if() // 11f9 ffff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -48285,7 +48285,7 @@ void m68000_device::move_b_adr32_adr16_if() // 11f9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -48756,7 +48756,7 @@ void m68000_device::move_b_imm8_adr16_if() // 11fc ffff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -48786,7 +48786,7 @@ void m68000_device::move_b_imm8_adr16_if() // 11fc ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dt);
-	m_at_source = m_dt_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dt_source);
 	m_au = ext32(m_dbin);
 	m_au_source = m_dbin_source;
 	// alu r=2 c=1 m=.nzvc  i=b....i. 1 a=9:m_dt d=-1
@@ -48914,7 +48914,7 @@ void m68000_device::move_b_ds_adr32_if() // 13c0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_da[ry]);
-	m_at_source = m_da_source[ry];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[ry]);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=2 c=1 m=.nzvc  i=b....i. 1 a=4:m_da[ry] d=-1
@@ -49026,7 +49026,7 @@ void m68000_device::move_b_ais_adr32_if() // 13d0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -49190,7 +49190,7 @@ void m68000_device::move_b_aips_adr32_if() // 13d8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -49357,7 +49357,7 @@ void m68000_device::move_b_pais_adr32_if() // 13e0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -49541,7 +49541,7 @@ void m68000_device::move_b_das_adr32_if() // 13e8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -49769,7 +49769,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -49953,7 +49953,7 @@ void m68000_device::move_b_adr16_adr32_if() // 13f8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -50126,7 +50126,7 @@ void m68000_device::move_b_adr32_adr32_if() // 13f9 ffff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -50163,7 +50163,7 @@ void m68000_device::move_b_adr32_adr32_if() // 13f9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -50718,7 +50718,7 @@ void m68000_device::move_b_imm8_adr32_if() // 13fc ffff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -50774,7 +50774,7 @@ void m68000_device::move_b_imm8_adr32_if() // 13fc ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dt);
-	m_at_source = m_dt_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dt_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=2 c=1 m=.nzvc  i=b....i. 1 a=9:m_dt d=-1
@@ -50996,7 +50996,7 @@ void m68000_device::move_l_ais_dd_if() // 2010 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -51027,7 +51027,7 @@ void m68000_device::move_l_ais_dd_if() // 2010 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -51112,7 +51112,7 @@ void m68000_device::move_l_aips_dd_if() // 2018 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -51148,7 +51148,7 @@ void m68000_device::move_l_aips_dd_if() // 2018 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -51239,7 +51239,7 @@ void m68000_device::move_l_pais_dd_if() // 2020 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -51270,7 +51270,7 @@ void m68000_device::move_l_pais_dd_if() // 2020 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -51381,7 +51381,7 @@ void m68000_device::move_l_das_dd_if() // 2028 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -51412,7 +51412,7 @@ void m68000_device::move_l_das_dd_if() // 2028 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -51567,7 +51567,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -51598,7 +51598,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -51714,7 +51714,7 @@ void m68000_device::move_l_adr16_dd_if() // 2038 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -51745,7 +51745,7 @@ void m68000_device::move_l_adr16_dd_if() // 2038 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -51852,7 +51852,7 @@ void m68000_device::move_l_adr32_dd_if() // 2039 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -51887,7 +51887,7 @@ void m68000_device::move_l_adr32_dd_if() // 2039 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -51918,7 +51918,7 @@ void m68000_device::move_l_adr32_dd_if() // 2039 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -52347,7 +52347,7 @@ void m68000_device::move_l_imm32_dd_if() // 203c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -52549,7 +52549,7 @@ void m68000_device::movea_l_ais_ad_if() // 2050 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -52580,7 +52580,7 @@ void m68000_device::movea_l_ais_ad_if() // 2050 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -52605,7 +52605,7 @@ void m68000_device::movea_l_ais_ad_if() // 2050 f1f8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_da[rx], m_dbin);
-	m_da_source[rx] = m_dbin_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.....  i=.....i. 1 a=31:m_dbin d=-1
@@ -52663,7 +52663,7 @@ void m68000_device::movea_l_aips_ad_if() // 2058 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -52699,7 +52699,7 @@ void m68000_device::movea_l_aips_ad_if() // 2058 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -52724,7 +52724,7 @@ void m68000_device::movea_l_aips_ad_if() // 2058 f1f8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_da[rx], m_dbin);
-	m_da_source[rx] = m_dbin_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.....  i=.....i. 1 a=31:m_dbin d=-1
@@ -52788,7 +52788,7 @@ void m68000_device::movea_l_pais_ad_if() // 2060 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -52819,7 +52819,7 @@ void m68000_device::movea_l_pais_ad_if() // 2060 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -52844,7 +52844,7 @@ void m68000_device::movea_l_pais_ad_if() // 2060 f1f8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_da[rx], m_dbin);
-	m_da_source[rx] = m_dbin_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.....  i=.....i. 1 a=31:m_dbin d=-1
@@ -52928,7 +52928,7 @@ void m68000_device::movea_l_das_ad_if() // 2068 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -52959,7 +52959,7 @@ void m68000_device::movea_l_das_ad_if() // 2068 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -52984,7 +52984,7 @@ void m68000_device::movea_l_das_ad_if() // 2068 f1f8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_da[rx], m_dbin);
-	m_da_source[rx] = m_dbin_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.....  i=.....i. 1 a=31:m_dbin d=-1
@@ -53112,7 +53112,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -53143,7 +53143,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -53168,7 +53168,7 @@ adsl2:
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_da[rx], m_dbin);
-	m_da_source[rx] = m_dbin_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.....  i=.....i. 1 a=31:m_dbin d=-1
@@ -53257,7 +53257,7 @@ void m68000_device::movea_l_adr16_ad_if() // 2078 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -53288,7 +53288,7 @@ void m68000_device::movea_l_adr16_ad_if() // 2078 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -53313,7 +53313,7 @@ void m68000_device::movea_l_adr16_ad_if() // 2078 f1ff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_da[rx], m_dbin);
-	m_da_source[rx] = m_dbin_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.....  i=.....i. 1 a=31:m_dbin d=-1
@@ -53393,7 +53393,7 @@ void m68000_device::movea_l_adr32_ad_if() // 2079 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -53428,7 +53428,7 @@ void m68000_device::movea_l_adr32_ad_if() // 2079 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -53459,7 +53459,7 @@ void m68000_device::movea_l_adr32_ad_if() // 2079 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -53484,7 +53484,7 @@ void m68000_device::movea_l_adr32_ad_if() // 2079 f1ff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_da[rx], m_dbin);
-	m_da_source[rx] = m_dbin_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.....  i=.....i. 1 a=31:m_dbin d=-1
@@ -53621,7 +53621,7 @@ void m68000_device::movea_l_dpc_ad_if() // 207a f1ff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_da[rx], m_dbin);
-	m_da_source[rx] = m_dbin_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.....  i=.....i. 1 a=31:m_dbin d=-1
@@ -53802,7 +53802,7 @@ adsl2:
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_da[rx], m_dbin);
-	m_da_source[rx] = m_dbin_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.....  i=.....i. 1 a=31:m_dbin d=-1
@@ -53882,7 +53882,7 @@ void m68000_device::movea_l_imm32_ad_if() // 207c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -54184,7 +54184,7 @@ void m68000_device::move_l_ais_aid_if() // 2090 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -54215,7 +54215,7 @@ void m68000_device::move_l_ais_aid_if() // 2090 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -54348,7 +54348,7 @@ void m68000_device::move_l_aips_aid_if() // 2098 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -54384,7 +54384,7 @@ void m68000_device::move_l_aips_aid_if() // 2098 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -54523,7 +54523,7 @@ void m68000_device::move_l_pais_aid_if() // 20a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -54554,7 +54554,7 @@ void m68000_device::move_l_pais_aid_if() // 20a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -54713,7 +54713,7 @@ void m68000_device::move_l_das_aid_if() // 20a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -54744,7 +54744,7 @@ void m68000_device::move_l_das_aid_if() // 20a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -54947,7 +54947,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -54978,7 +54978,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -55142,7 +55142,7 @@ void m68000_device::move_l_adr16_aid_if() // 20b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -55173,7 +55173,7 @@ void m68000_device::move_l_adr16_aid_if() // 20b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -55328,7 +55328,7 @@ void m68000_device::move_l_adr32_aid_if() // 20b9 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -55363,7 +55363,7 @@ void m68000_device::move_l_adr32_aid_if() // 20b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -55394,7 +55394,7 @@ void m68000_device::move_l_adr32_aid_if() // 20b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -55967,7 +55967,7 @@ void m68000_device::move_l_imm32_aid_if() // 20bc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -56320,7 +56320,7 @@ void m68000_device::move_l_ais_aipd_if() // 20d0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -56351,7 +56351,7 @@ void m68000_device::move_l_ais_aipd_if() // 20d0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -56483,7 +56483,7 @@ void m68000_device::move_l_aips_aipd_if() // 20d8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -56519,7 +56519,7 @@ void m68000_device::move_l_aips_aipd_if() // 20d8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -56657,7 +56657,7 @@ void m68000_device::move_l_pais_aipd_if() // 20e0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -56688,7 +56688,7 @@ void m68000_device::move_l_pais_aipd_if() // 20e0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -56846,7 +56846,7 @@ void m68000_device::move_l_das_aipd_if() // 20e8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -56877,7 +56877,7 @@ void m68000_device::move_l_das_aipd_if() // 20e8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -57079,7 +57079,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -57110,7 +57110,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -57273,7 +57273,7 @@ void m68000_device::move_l_adr16_aipd_if() // 20f8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -57304,7 +57304,7 @@ void m68000_device::move_l_adr16_aipd_if() // 20f8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -57458,7 +57458,7 @@ void m68000_device::move_l_adr32_aipd_if() // 20f9 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -57493,7 +57493,7 @@ void m68000_device::move_l_adr32_aipd_if() // 20f9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -57524,7 +57524,7 @@ void m68000_device::move_l_adr32_aipd_if() // 20f9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -58094,7 +58094,7 @@ void m68000_device::move_l_imm32_aipd_if() // 20fc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -58443,7 +58443,7 @@ void m68000_device::move_l_ais_paid_if() // 2110 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -58474,7 +58474,7 @@ void m68000_device::move_l_ais_paid_if() // 2110 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -58606,7 +58606,7 @@ void m68000_device::move_l_aips_paid_if() // 2118 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -58642,7 +58642,7 @@ void m68000_device::move_l_aips_paid_if() // 2118 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -58780,7 +58780,7 @@ void m68000_device::move_l_pais_paid_if() // 2120 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -58811,7 +58811,7 @@ void m68000_device::move_l_pais_paid_if() // 2120 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -58969,7 +58969,7 @@ void m68000_device::move_l_das_paid_if() // 2128 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -59000,7 +59000,7 @@ void m68000_device::move_l_das_paid_if() // 2128 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -59202,7 +59202,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -59233,7 +59233,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -59396,7 +59396,7 @@ void m68000_device::move_l_adr16_paid_if() // 2138 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -59427,7 +59427,7 @@ void m68000_device::move_l_adr16_paid_if() // 2138 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -59581,7 +59581,7 @@ void m68000_device::move_l_adr32_paid_if() // 2139 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -59616,7 +59616,7 @@ void m68000_device::move_l_adr32_paid_if() // 2139 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -59647,7 +59647,7 @@ void m68000_device::move_l_adr32_paid_if() // 2139 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -60217,7 +60217,7 @@ void m68000_device::move_l_imm32_paid_if() // 213c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -60624,7 +60624,7 @@ void m68000_device::move_l_ais_dad_if() // 2150 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -60655,7 +60655,7 @@ void m68000_device::move_l_ais_dad_if() // 2150 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -60708,7 +60708,7 @@ void m68000_device::move_l_ais_dad_if() // 2150 f1f8
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -60820,7 +60820,7 @@ void m68000_device::move_l_aips_dad_if() // 2158 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -60856,7 +60856,7 @@ void m68000_device::move_l_aips_dad_if() // 2158 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -60909,7 +60909,7 @@ void m68000_device::move_l_aips_dad_if() // 2158 f1f8
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -61027,7 +61027,7 @@ void m68000_device::move_l_pais_dad_if() // 2160 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -61058,7 +61058,7 @@ void m68000_device::move_l_pais_dad_if() // 2160 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -61111,7 +61111,7 @@ void m68000_device::move_l_pais_dad_if() // 2160 f1f8
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -61249,7 +61249,7 @@ void m68000_device::move_l_das_dad_if() // 2168 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -61280,7 +61280,7 @@ void m68000_device::move_l_das_dad_if() // 2168 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -61333,7 +61333,7 @@ void m68000_device::move_l_das_dad_if() // 2168 f1f8
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -61515,7 +61515,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -61546,7 +61546,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -61599,7 +61599,7 @@ adsl2:
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -61742,7 +61742,7 @@ void m68000_device::move_l_adr16_dad_if() // 2178 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -61773,7 +61773,7 @@ void m68000_device::move_l_adr16_dad_if() // 2178 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -61826,7 +61826,7 @@ void m68000_device::move_l_adr16_dad_if() // 2178 f1ff
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -61960,7 +61960,7 @@ void m68000_device::move_l_adr32_dad_if() // 2179 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -61995,7 +61995,7 @@ void m68000_device::move_l_adr32_dad_if() // 2179 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -62026,7 +62026,7 @@ void m68000_device::move_l_adr32_dad_if() // 2179 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -62079,7 +62079,7 @@ void m68000_device::move_l_adr32_dad_if() // 2179 f1ff
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -62298,7 +62298,7 @@ void m68000_device::move_l_dpc_dad_if() // 217a f1ff
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -62561,7 +62561,7 @@ adsl2:
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -62695,7 +62695,7 @@ void m68000_device::move_l_imm32_dad_if() // 217c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -63224,7 +63224,7 @@ void m68000_device::move_l_ais_daid_if() // 2190 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -63255,7 +63255,7 @@ void m68000_device::move_l_ais_daid_if() // 2190 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -63352,7 +63352,7 @@ mawl2:
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=.l....f 1 a=alub d=-1
@@ -63464,7 +63464,7 @@ void m68000_device::move_l_aips_daid_if() // 2198 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -63500,7 +63500,7 @@ void m68000_device::move_l_aips_daid_if() // 2198 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -63597,7 +63597,7 @@ mawl2:
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=.l....f 1 a=alub d=-1
@@ -63715,7 +63715,7 @@ void m68000_device::move_l_pais_daid_if() // 21a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -63746,7 +63746,7 @@ void m68000_device::move_l_pais_daid_if() // 21a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -63843,7 +63843,7 @@ mawl2:
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=.l....f 1 a=alub d=-1
@@ -63981,7 +63981,7 @@ void m68000_device::move_l_das_daid_if() // 21a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -64012,7 +64012,7 @@ void m68000_device::move_l_das_daid_if() // 21a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -64109,7 +64109,7 @@ mawl2:
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=.l....f 1 a=alub d=-1
@@ -64291,7 +64291,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -64322,7 +64322,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -64419,7 +64419,7 @@ mawl2:
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=.l....f 1 a=alub d=-1
@@ -64562,7 +64562,7 @@ void m68000_device::move_l_adr16_daid_if() // 21b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -64593,7 +64593,7 @@ void m68000_device::move_l_adr16_daid_if() // 21b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -64690,7 +64690,7 @@ mawl2:
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=.l....f 1 a=alub d=-1
@@ -64824,7 +64824,7 @@ void m68000_device::move_l_adr32_daid_if() // 21b9 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -64859,7 +64859,7 @@ void m68000_device::move_l_adr32_daid_if() // 21b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -64890,7 +64890,7 @@ void m68000_device::move_l_adr32_daid_if() // 21b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -64987,7 +64987,7 @@ mawl2:
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=.l....f 1 a=alub d=-1
@@ -65250,7 +65250,7 @@ mawl2:
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=.l....f 1 a=alub d=-1
@@ -65557,7 +65557,7 @@ mawl2:
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=.l....f 1 a=alub d=-1
@@ -65691,7 +65691,7 @@ void m68000_device::move_l_imm32_daid_if() // 21bc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -65900,7 +65900,7 @@ void m68000_device::move_l_ds_adr16_if() // 21c0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_da[ry]);
-	m_at_source = m_da_source[ry];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[ry]);
 	m_au = ext32(m_dbin);
 	m_au_source = m_dbin_source;
 	// alu r=2 c=1 m=.nzvc  i=.....i. 1 a=4:m_da[ry] d=-1
@@ -66038,7 +66038,7 @@ void m68000_device::move_l_as_adr16_if() // 21c8 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_da[ry]);
-	m_at_source = m_da_source[ry];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[ry]);
 	m_au = ext32(m_dbin);
 	m_au_source = m_dbin_source;
 	// alu r=2 c=1 m=.nzvc  i=.....i. 1 a=3:m_da[ry] d=-1
@@ -66181,7 +66181,7 @@ void m68000_device::move_l_ais_adr16_if() // 21d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -66212,7 +66212,7 @@ void m68000_device::move_l_ais_adr16_if() // 21d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -66265,7 +66265,7 @@ void m68000_device::move_l_ais_adr16_if() // 21d0 fff8
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -66376,7 +66376,7 @@ void m68000_device::move_l_aips_adr16_if() // 21d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -66412,7 +66412,7 @@ void m68000_device::move_l_aips_adr16_if() // 21d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -66465,7 +66465,7 @@ void m68000_device::move_l_aips_adr16_if() // 21d8 fff8
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -66582,7 +66582,7 @@ void m68000_device::move_l_pais_adr16_if() // 21e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -66613,7 +66613,7 @@ void m68000_device::move_l_pais_adr16_if() // 21e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -66666,7 +66666,7 @@ void m68000_device::move_l_pais_adr16_if() // 21e0 fff8
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -66803,7 +66803,7 @@ void m68000_device::move_l_das_adr16_if() // 21e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -66834,7 +66834,7 @@ void m68000_device::move_l_das_adr16_if() // 21e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -66887,7 +66887,7 @@ void m68000_device::move_l_das_adr16_if() // 21e8 fff8
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -67068,7 +67068,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -67099,7 +67099,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -67152,7 +67152,7 @@ adsl2:
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -67294,7 +67294,7 @@ void m68000_device::move_l_adr16_adr16_if() // 21f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -67325,7 +67325,7 @@ void m68000_device::move_l_adr16_adr16_if() // 21f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -67378,7 +67378,7 @@ void m68000_device::move_l_adr16_adr16_if() // 21f8 ffff
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -67511,7 +67511,7 @@ void m68000_device::move_l_adr32_adr16_if() // 21f9 ffff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -67546,7 +67546,7 @@ void m68000_device::move_l_adr32_adr16_if() // 21f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -67577,7 +67577,7 @@ void m68000_device::move_l_adr32_adr16_if() // 21f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -67630,7 +67630,7 @@ void m68000_device::move_l_adr32_adr16_if() // 21f9 ffff
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -67848,7 +67848,7 @@ void m68000_device::move_l_dpc_adr16_if() // 21fa ffff
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -68110,7 +68110,7 @@ adsl2:
 	m_dbout = m_alue;
 	m_dbout_source = m_alue_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=2 c=1 m=.nz..  i=......f 1 a=alub d=-1
@@ -68243,7 +68243,7 @@ void m68000_device::move_l_imm32_adr16_if() // 21fc ffff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -68273,7 +68273,7 @@ void m68000_device::move_l_imm32_adr16_if() // 21fc ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dt);
-	m_at_source = m_dt_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dt_source);
 	m_au = ext32(m_dbin);
 	m_au_source = m_dbin_source;
 	// alu r=2 c=1 m=.nzvc  i=.....i. 1 a=9:m_dt d=-1
@@ -68437,7 +68437,7 @@ void m68000_device::move_l_ds_adr32_if() // 23c0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_da[ry]);
-	m_at_source = m_da_source[ry];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[ry]);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=2 c=1 m=.nzvc  i=.....i. 1 a=4:m_da[ry] d=-1
@@ -68601,7 +68601,7 @@ void m68000_device::move_l_as_adr32_if() // 23c8 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_da[ry]);
-	m_at_source = m_da_source[ry];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[ry]);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=2 c=1 m=.nzvc  i=.....i. 1 a=3:m_da[ry] d=-1
@@ -68744,7 +68744,7 @@ void m68000_device::move_l_ais_adr32_if() // 23d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -68775,7 +68775,7 @@ void m68000_device::move_l_ais_adr32_if() // 23d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -68798,7 +68798,7 @@ void m68000_device::move_l_ais_adr32_if() // 23d0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	set_16h(m_at, m_aluo);
 	m_at_source = m_aluo_source;
 	// alu r=2 c=1 m=.....  i=....... 1 a=alub d=-1
@@ -68970,7 +68970,7 @@ void m68000_device::move_l_aips_adr32_if() // 23d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -69006,7 +69006,7 @@ void m68000_device::move_l_aips_adr32_if() // 23d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -69029,7 +69029,7 @@ void m68000_device::move_l_aips_adr32_if() // 23d8 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	set_16h(m_at, m_aluo);
 	m_at_source = m_aluo_source;
 	// alu r=2 c=1 m=.....  i=....... 1 a=alub d=-1
@@ -69207,7 +69207,7 @@ void m68000_device::move_l_pais_adr32_if() // 23e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -69238,7 +69238,7 @@ void m68000_device::move_l_pais_adr32_if() // 23e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -69261,7 +69261,7 @@ void m68000_device::move_l_pais_adr32_if() // 23e0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	set_16h(m_at, m_aluo);
 	m_at_source = m_aluo_source;
 	// alu r=2 c=1 m=.....  i=....... 1 a=alub d=-1
@@ -69459,7 +69459,7 @@ void m68000_device::move_l_das_adr32_if() // 23e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -69490,7 +69490,7 @@ void m68000_device::move_l_das_adr32_if() // 23e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -69513,7 +69513,7 @@ void m68000_device::move_l_das_adr32_if() // 23e8 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	set_16h(m_at, m_aluo);
 	m_at_source = m_aluo_source;
 	// alu r=2 c=1 m=.....  i=....... 1 a=alub d=-1
@@ -69755,7 +69755,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -69786,7 +69786,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -69809,7 +69809,7 @@ adsl2:
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	set_16h(m_at, m_aluo);
 	m_at_source = m_aluo_source;
 	// alu r=2 c=1 m=.....  i=....... 1 a=alub d=-1
@@ -70012,7 +70012,7 @@ void m68000_device::move_l_adr16_adr32_if() // 23f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -70043,7 +70043,7 @@ void m68000_device::move_l_adr16_adr32_if() // 23f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -70066,7 +70066,7 @@ void m68000_device::move_l_adr16_adr32_if() // 23f8 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	set_16h(m_at, m_aluo);
 	m_at_source = m_aluo_source;
 	// alu r=2 c=1 m=.....  i=....... 1 a=alub d=-1
@@ -70260,7 +70260,7 @@ void m68000_device::move_l_adr32_adr32_if() // 23f9 ffff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -70295,7 +70295,7 @@ void m68000_device::move_l_adr32_adr32_if() // 23f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -70326,7 +70326,7 @@ void m68000_device::move_l_adr32_adr32_if() // 23f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -70349,7 +70349,7 @@ void m68000_device::move_l_adr32_adr32_if() // 23f9 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	set_16h(m_at, m_aluo);
 	m_at_source = m_aluo_source;
 	// alu r=2 c=1 m=.....  i=....... 1 a=alub d=-1
@@ -70598,7 +70598,7 @@ void m68000_device::move_l_dpc_adr32_if() // 23fa ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	set_16h(m_at, m_aluo);
 	m_at_source = m_aluo_source;
 	// alu r=2 c=1 m=.....  i=....... 1 a=alub d=-1
@@ -70891,7 +70891,7 @@ adsl2:
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	set_16h(m_at, m_aluo);
 	m_at_source = m_aluo_source;
 	// alu r=2 c=1 m=.....  i=....... 1 a=alub d=-1
@@ -71085,7 +71085,7 @@ void m68000_device::move_l_imm32_adr32_if() // 23fc ffff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -71141,7 +71141,7 @@ void m68000_device::move_l_imm32_adr32_if() // 23fc ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dt);
-	m_at_source = m_dt_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dt_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=2 c=1 m=.nzvc  i=.....i. 1 a=9:m_dt d=-1
@@ -71398,7 +71398,7 @@ void m68000_device::move_w_ais_dd_if() // 3010 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -71488,7 +71488,7 @@ void m68000_device::move_w_aips_dd_if() // 3018 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -71581,7 +71581,7 @@ void m68000_device::move_w_pais_dd_if() // 3020 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -71691,7 +71691,7 @@ void m68000_device::move_w_das_dd_if() // 3028 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -71845,7 +71845,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -71955,7 +71955,7 @@ void m68000_device::move_w_adr16_dd_if() // 3038 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -72056,7 +72056,7 @@ void m68000_device::move_w_adr32_dd_if() // 3039 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -72091,7 +72091,7 @@ void m68000_device::move_w_adr32_dd_if() // 3039 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -72426,7 +72426,7 @@ void m68000_device::move_w_imm16_dd_if() // 303c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -72623,7 +72623,7 @@ void m68000_device::movea_w_ais_ad_if() // 3050 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -72709,7 +72709,7 @@ void m68000_device::movea_w_aips_ad_if() // 3058 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -72798,7 +72798,7 @@ void m68000_device::movea_w_pais_ad_if() // 3060 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -72904,7 +72904,7 @@ void m68000_device::movea_w_das_ad_if() // 3068 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -73054,7 +73054,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -73160,7 +73160,7 @@ void m68000_device::movea_w_adr16_ad_if() // 3078 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -73257,7 +73257,7 @@ void m68000_device::movea_w_adr32_ad_if() // 3079 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -73292,7 +73292,7 @@ void m68000_device::movea_w_adr32_ad_if() // 3079 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -73615,7 +73615,7 @@ void m68000_device::movea_w_imm16_ad_if() // 307c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -73857,7 +73857,7 @@ void m68000_device::move_w_ais_aid_if() // 3090 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -73970,7 +73970,7 @@ void m68000_device::move_w_aips_aid_if() // 3098 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -74086,7 +74086,7 @@ void m68000_device::move_w_pais_aid_if() // 30a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -74219,7 +74219,7 @@ void m68000_device::move_w_das_aid_if() // 30a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -74396,7 +74396,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -74529,7 +74529,7 @@ void m68000_device::move_w_adr16_aid_if() // 30b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -74653,7 +74653,7 @@ void m68000_device::move_w_adr32_aid_if() // 30b9 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -74688,7 +74688,7 @@ void m68000_device::move_w_adr32_aid_if() // 30b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -75092,7 +75092,7 @@ void m68000_device::move_w_imm16_aid_if() // 30bc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -75356,7 +75356,7 @@ void m68000_device::move_w_ais_aipd_if() // 30d0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -75470,7 +75470,7 @@ void m68000_device::move_w_aips_aipd_if() // 30d8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -75587,7 +75587,7 @@ void m68000_device::move_w_pais_aipd_if() // 30e0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -75721,7 +75721,7 @@ void m68000_device::move_w_das_aipd_if() // 30e8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -75899,7 +75899,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -76033,7 +76033,7 @@ void m68000_device::move_w_adr16_aipd_if() // 30f8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -76158,7 +76158,7 @@ void m68000_device::move_w_adr32_aipd_if() // 30f9 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -76193,7 +76193,7 @@ void m68000_device::move_w_adr32_aipd_if() // 30f9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -76600,7 +76600,7 @@ void m68000_device::move_w_imm16_aipd_if() // 30fc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -76863,7 +76863,7 @@ void m68000_device::move_w_ais_paid_if() // 3110 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -76977,7 +76977,7 @@ void m68000_device::move_w_aips_paid_if() // 3118 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -77094,7 +77094,7 @@ void m68000_device::move_w_pais_paid_if() // 3120 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -77228,7 +77228,7 @@ void m68000_device::move_w_das_paid_if() // 3128 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -77406,7 +77406,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -77540,7 +77540,7 @@ void m68000_device::move_w_adr16_paid_if() // 3138 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -77665,7 +77665,7 @@ void m68000_device::move_w_adr32_paid_if() // 3139 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -77700,7 +77700,7 @@ void m68000_device::move_w_adr32_paid_if() // 3139 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -78107,7 +78107,7 @@ void m68000_device::move_w_imm16_paid_if() // 313c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -78424,7 +78424,7 @@ void m68000_device::move_w_ais_dad_if() // 3150 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -78569,7 +78569,7 @@ void m68000_device::move_w_aips_dad_if() // 3158 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -78717,7 +78717,7 @@ void m68000_device::move_w_pais_dad_if() // 3160 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -78882,7 +78882,7 @@ void m68000_device::move_w_das_dad_if() // 3168 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -79091,7 +79091,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -79256,7 +79256,7 @@ void m68000_device::move_w_adr16_dad_if() // 3178 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -79412,7 +79412,7 @@ void m68000_device::move_w_adr32_dad_if() // 3179 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -79447,7 +79447,7 @@ void m68000_device::move_w_adr32_dad_if() // 3179 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -79947,7 +79947,7 @@ void m68000_device::move_w_imm16_dad_if() // 317c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -80383,7 +80383,7 @@ void m68000_device::move_w_ais_daid_if() // 3190 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -80572,7 +80572,7 @@ void m68000_device::move_w_aips_daid_if() // 3198 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -80764,7 +80764,7 @@ void m68000_device::move_w_pais_daid_if() // 31a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -80973,7 +80973,7 @@ void m68000_device::move_w_das_daid_if() // 31a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -81226,7 +81226,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -81435,7 +81435,7 @@ void m68000_device::move_w_adr16_daid_if() // 31b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -81635,7 +81635,7 @@ void m68000_device::move_w_adr32_daid_if() // 31b9 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -81670,7 +81670,7 @@ void m68000_device::move_w_adr32_daid_if() // 31b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -82302,7 +82302,7 @@ void m68000_device::move_w_imm16_daid_if() // 31bc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -82479,7 +82479,7 @@ void m68000_device::move_w_ds_adr16_if() // 31c0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_da[ry]);
-	m_at_source = m_da_source[ry];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[ry]);
 	m_au = ext32(m_dbin);
 	m_au_source = m_dbin_source;
 	// alu r=2 c=1 m=.nzvc  i=.....i. 1 a=4:m_da[ry] d=-1
@@ -82586,7 +82586,7 @@ void m68000_device::move_w_as_adr16_if() // 31c8 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_da[ry]);
-	m_at_source = m_da_source[ry];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[ry]);
 	m_au = ext32(m_dbin);
 	m_au_source = m_dbin_source;
 	// alu r=2 c=1 m=.nzvc  i=.....i. 1 a=3:m_da[ry] d=-1
@@ -82701,7 +82701,7 @@ void m68000_device::move_w_ais_adr16_if() // 31d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -82845,7 +82845,7 @@ void m68000_device::move_w_aips_adr16_if() // 31d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -82992,7 +82992,7 @@ void m68000_device::move_w_pais_adr16_if() // 31e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -83156,7 +83156,7 @@ void m68000_device::move_w_das_adr16_if() // 31e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -83364,7 +83364,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -83528,7 +83528,7 @@ void m68000_device::move_w_adr16_adr16_if() // 31f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -83683,7 +83683,7 @@ void m68000_device::move_w_adr32_adr16_if() // 31f9 ffff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -83718,7 +83718,7 @@ void m68000_device::move_w_adr32_adr16_if() // 31f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -84215,7 +84215,7 @@ void m68000_device::move_w_imm16_adr16_if() // 31fc ffff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -84245,7 +84245,7 @@ void m68000_device::move_w_imm16_adr16_if() // 31fc ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dt);
-	m_at_source = m_dt_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dt_source);
 	m_au = ext32(m_dbin);
 	m_au_source = m_dbin_source;
 	// alu r=2 c=1 m=.nzvc  i=.....i. 1 a=9:m_dt d=-1
@@ -84378,7 +84378,7 @@ void m68000_device::move_w_ds_adr32_if() // 33c0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_da[ry]);
-	m_at_source = m_da_source[ry];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[ry]);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=2 c=1 m=.nzvc  i=.....i. 1 a=4:m_da[ry] d=-1
@@ -84511,7 +84511,7 @@ void m68000_device::move_w_as_adr32_if() // 33c8 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_da[ry]);
-	m_at_source = m_da_source[ry];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[ry]);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=2 c=1 m=.nzvc  i=.....i. 1 a=3:m_da[ry] d=-1
@@ -84626,7 +84626,7 @@ void m68000_device::move_w_ais_adr32_if() // 33d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -84798,7 +84798,7 @@ void m68000_device::move_w_aips_adr32_if() // 33d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -84973,7 +84973,7 @@ void m68000_device::move_w_pais_adr32_if() // 33e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -85165,7 +85165,7 @@ void m68000_device::move_w_das_adr32_if() // 33e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -85401,7 +85401,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -85593,7 +85593,7 @@ void m68000_device::move_w_adr16_adr32_if() // 33f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -85776,7 +85776,7 @@ void m68000_device::move_w_adr32_adr32_if() // 33f9 ffff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -85811,7 +85811,7 @@ void m68000_device::move_w_adr32_adr32_if() // 33f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -86392,7 +86392,7 @@ void m68000_device::move_w_imm16_adr32_if() // 33fc ffff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -86448,7 +86448,7 @@ void m68000_device::move_w_imm16_adr32_if() // 33fc ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dt);
-	m_at_source = m_dt_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dt_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=2 c=1 m=.nzvc  i=.....i. 1 a=9:m_dt d=-1
@@ -86617,7 +86617,7 @@ void m68000_device::negx_b_ais_if() // 4010 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -86720,7 +86720,7 @@ void m68000_device::negx_b_aips_if() // 4018 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -86826,7 +86826,7 @@ void m68000_device::negx_b_pais_if() // 4020 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -86949,7 +86949,7 @@ void m68000_device::negx_b_das_if() // 4028 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -87116,7 +87116,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -87239,7 +87239,7 @@ void m68000_device::negx_b_adr16_if() // 4038 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -87351,7 +87351,7 @@ void m68000_device::negx_b_adr32_if() // 4039 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -87388,7 +87388,7 @@ void m68000_device::negx_b_adr32_if() // 4039 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -87533,7 +87533,7 @@ void m68000_device::negx_w_ais_if() // 4050 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -87644,7 +87644,7 @@ void m68000_device::negx_w_aips_if() // 4058 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -87758,7 +87758,7 @@ void m68000_device::negx_w_pais_if() // 4060 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -87889,7 +87889,7 @@ void m68000_device::negx_w_das_if() // 4068 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -88064,7 +88064,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -88195,7 +88195,7 @@ void m68000_device::negx_w_adr16_if() // 4078 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -88317,7 +88317,7 @@ void m68000_device::negx_w_adr32_if() // 4079 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -88352,7 +88352,7 @@ void m68000_device::negx_w_adr32_if() // 4079 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -88512,7 +88512,7 @@ void m68000_device::negx_l_ais_if() // 4090 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -88543,7 +88543,7 @@ void m68000_device::negx_l_ais_if() // 4090 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -88672,7 +88672,7 @@ void m68000_device::negx_l_aips_if() // 4098 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -88708,7 +88708,7 @@ void m68000_device::negx_l_aips_if() // 4098 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -88843,7 +88843,7 @@ void m68000_device::negx_l_pais_if() // 40a0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -88874,7 +88874,7 @@ void m68000_device::negx_l_pais_if() // 40a0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -89029,7 +89029,7 @@ void m68000_device::negx_l_das_if() // 40a8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -89060,7 +89060,7 @@ void m68000_device::negx_l_das_if() // 40a8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -89259,7 +89259,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -89290,7 +89290,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -89450,7 +89450,7 @@ void m68000_device::negx_l_adr16_if() // 40b8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -89481,7 +89481,7 @@ void m68000_device::negx_l_adr16_if() // 40b8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -89632,7 +89632,7 @@ void m68000_device::negx_l_adr32_if() // 40b9 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -89667,7 +89667,7 @@ void m68000_device::negx_l_adr32_if() // 40b9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -89698,7 +89698,7 @@ void m68000_device::negx_l_adr32_if() // 40b9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -89880,7 +89880,7 @@ void m68000_device::move_sr_ais_if() // 40d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -89993,7 +89993,7 @@ void m68000_device::move_sr_aips_if() // 40d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -90109,7 +90109,7 @@ void m68000_device::move_sr_pais_if() // 40e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -90242,7 +90242,7 @@ void m68000_device::move_sr_das_if() // 40e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -90419,7 +90419,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -90552,7 +90552,7 @@ void m68000_device::move_sr_adr16_if() // 40f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -90676,7 +90676,7 @@ void m68000_device::move_sr_adr32_if() // 40f9 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -90711,7 +90711,7 @@ void m68000_device::move_sr_adr32_if() // 40f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -90946,7 +90946,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -90973,7 +90973,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -91096,7 +91096,7 @@ void m68000_device::chk_w_ais_dd_if() // 4190 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -91256,7 +91256,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -91283,7 +91283,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -91414,7 +91414,7 @@ void m68000_device::chk_w_aips_dd_if() // 4198 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -91574,7 +91574,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -91601,7 +91601,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -91735,7 +91735,7 @@ void m68000_device::chk_w_pais_dd_if() // 41a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -91895,7 +91895,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -91922,7 +91922,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -92073,7 +92073,7 @@ void m68000_device::chk_w_das_dd_if() // 41a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -92233,7 +92233,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -92260,7 +92260,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -92455,7 +92455,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -92615,7 +92615,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -92642,7 +92642,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -92793,7 +92793,7 @@ void m68000_device::chk_w_adr16_dd_if() // 41b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -92953,7 +92953,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -92980,7 +92980,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -93122,7 +93122,7 @@ void m68000_device::chk_w_adr32_dd_if() // 41b9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -93157,7 +93157,7 @@ void m68000_device::chk_w_adr32_dd_if() // 41b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -93317,7 +93317,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -93344,7 +93344,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -93653,7 +93653,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -93680,7 +93680,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -94033,7 +94033,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -94060,7 +94060,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -94176,7 +94176,7 @@ void m68000_device::chk_w_imm16_dd_if() // 41bc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -94343,7 +94343,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -94370,7 +94370,7 @@ trap1:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -94828,7 +94828,7 @@ void m68000_device::lea_adr32_ad_if() // 41f9 f1ff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_da[rx], m_dbin);
-	m_da_source[rx] = m_dbin_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -95159,7 +95159,7 @@ void m68000_device::clr_b_ais_if() // 4210 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -95266,7 +95266,7 @@ void m68000_device::clr_b_aips_if() // 4218 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -95376,7 +95376,7 @@ void m68000_device::clr_b_pais_if() // 4220 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -95502,7 +95502,7 @@ void m68000_device::clr_b_das_if() // 4228 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -95674,7 +95674,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -95801,7 +95801,7 @@ void m68000_device::clr_b_adr16_if() // 4238 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -95915,7 +95915,7 @@ void m68000_device::clr_b_adr32_if() // 4239 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=4 c=0 m=.....  i=b...... 1 a=14:m_da[m_movems] d=31:m_dbin
@@ -95955,7 +95955,7 @@ void m68000_device::clr_b_adr32_if() // 4239 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -96103,7 +96103,7 @@ void m68000_device::clr_w_ais_if() // 4250 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -96218,7 +96218,7 @@ void m68000_device::clr_w_aips_if() // 4258 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -96336,7 +96336,7 @@ void m68000_device::clr_w_pais_if() // 4260 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -96470,7 +96470,7 @@ void m68000_device::clr_w_das_if() // 4268 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -96650,7 +96650,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -96785,7 +96785,7 @@ void m68000_device::clr_w_adr16_if() // 4278 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -96909,7 +96909,7 @@ void m68000_device::clr_w_adr32_if() // 4279 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=4 c=0 m=.....  i=....... 1 a=14:m_da[m_movems] d=31:m_dbin
@@ -96947,7 +96947,7 @@ void m68000_device::clr_w_adr32_if() // 4279 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -97109,7 +97109,7 @@ void m68000_device::clr_l_ais_if() // 4290 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -97141,7 +97141,7 @@ void m68000_device::clr_l_ais_if() // 4290 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -97271,7 +97271,7 @@ void m68000_device::clr_l_aips_if() // 4298 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -97309,7 +97309,7 @@ void m68000_device::clr_l_aips_if() // 4298 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -97446,7 +97446,7 @@ void m68000_device::clr_l_pais_if() // 42a0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -97478,7 +97478,7 @@ void m68000_device::clr_l_pais_if() // 42a0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -97635,7 +97635,7 @@ void m68000_device::clr_l_das_if() // 42a8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -97667,7 +97667,7 @@ void m68000_device::clr_l_das_if() // 42a8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -97870,7 +97870,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -97902,7 +97902,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -98066,7 +98066,7 @@ void m68000_device::clr_l_adr16_if() // 42b8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -98098,7 +98098,7 @@ void m68000_device::clr_l_adr16_if() // 42b8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -98251,7 +98251,7 @@ void m68000_device::clr_l_adr32_if() // 42b9 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=4 c=0 m=.....  i=.l..... 1 a=14:m_da[m_movems] d=31:m_dbin
@@ -98289,7 +98289,7 @@ void m68000_device::clr_l_adr32_if() // 42b9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -98321,7 +98321,7 @@ void m68000_device::clr_l_adr32_if() // 42b9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -98508,7 +98508,7 @@ void m68000_device::neg_b_ais_if() // 4410 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -98611,7 +98611,7 @@ void m68000_device::neg_b_aips_if() // 4418 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -98717,7 +98717,7 @@ void m68000_device::neg_b_pais_if() // 4420 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -98840,7 +98840,7 @@ void m68000_device::neg_b_das_if() // 4428 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -99007,7 +99007,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -99130,7 +99130,7 @@ void m68000_device::neg_b_adr16_if() // 4438 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -99242,7 +99242,7 @@ void m68000_device::neg_b_adr32_if() // 4439 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -99279,7 +99279,7 @@ void m68000_device::neg_b_adr32_if() // 4439 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -99424,7 +99424,7 @@ void m68000_device::neg_w_ais_if() // 4450 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -99535,7 +99535,7 @@ void m68000_device::neg_w_aips_if() // 4458 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -99649,7 +99649,7 @@ void m68000_device::neg_w_pais_if() // 4460 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -99780,7 +99780,7 @@ void m68000_device::neg_w_das_if() // 4468 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -99955,7 +99955,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -100086,7 +100086,7 @@ void m68000_device::neg_w_adr16_if() // 4478 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -100208,7 +100208,7 @@ void m68000_device::neg_w_adr32_if() // 4479 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -100243,7 +100243,7 @@ void m68000_device::neg_w_adr32_if() // 4479 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -100403,7 +100403,7 @@ void m68000_device::neg_l_ais_if() // 4490 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -100434,7 +100434,7 @@ void m68000_device::neg_l_ais_if() // 4490 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -100563,7 +100563,7 @@ void m68000_device::neg_l_aips_if() // 4498 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -100599,7 +100599,7 @@ void m68000_device::neg_l_aips_if() // 4498 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -100734,7 +100734,7 @@ void m68000_device::neg_l_pais_if() // 44a0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -100765,7 +100765,7 @@ void m68000_device::neg_l_pais_if() // 44a0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -100920,7 +100920,7 @@ void m68000_device::neg_l_das_if() // 44a8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -100951,7 +100951,7 @@ void m68000_device::neg_l_das_if() // 44a8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -101150,7 +101150,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -101181,7 +101181,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -101341,7 +101341,7 @@ void m68000_device::neg_l_adr16_if() // 44b8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -101372,7 +101372,7 @@ void m68000_device::neg_l_adr16_if() // 44b8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -101523,7 +101523,7 @@ void m68000_device::neg_l_adr32_if() // 44b9 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -101558,7 +101558,7 @@ void m68000_device::neg_l_adr32_if() // 44b9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -101589,7 +101589,7 @@ void m68000_device::neg_l_adr32_if() // 44b9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -101809,7 +101809,7 @@ void m68000_device::move_ais_ccr_if() // 44d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -101936,7 +101936,7 @@ void m68000_device::move_aips_ccr_if() // 44d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -102066,7 +102066,7 @@ void m68000_device::move_pais_ccr_if() // 44e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -102213,7 +102213,7 @@ void m68000_device::move_das_ccr_if() // 44e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -102404,7 +102404,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -102551,7 +102551,7 @@ void m68000_device::move_adr16_ccr_if() // 44f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -102689,7 +102689,7 @@ void m68000_device::move_adr32_ccr_if() // 44f9 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -102724,7 +102724,7 @@ void m68000_device::move_adr32_ccr_if() // 44f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -103170,7 +103170,7 @@ void m68000_device::move_imm8_ccr_if() // 44fc ffff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -103350,7 +103350,7 @@ void m68000_device::not_b_ais_if() // 4610 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -103453,7 +103453,7 @@ void m68000_device::not_b_aips_if() // 4618 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -103559,7 +103559,7 @@ void m68000_device::not_b_pais_if() // 4620 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -103682,7 +103682,7 @@ void m68000_device::not_b_das_if() // 4628 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -103849,7 +103849,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -103972,7 +103972,7 @@ void m68000_device::not_b_adr16_if() // 4638 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -104084,7 +104084,7 @@ void m68000_device::not_b_adr32_if() // 4639 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -104121,7 +104121,7 @@ void m68000_device::not_b_adr32_if() // 4639 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -104266,7 +104266,7 @@ void m68000_device::not_w_ais_if() // 4650 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -104377,7 +104377,7 @@ void m68000_device::not_w_aips_if() // 4658 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -104491,7 +104491,7 @@ void m68000_device::not_w_pais_if() // 4660 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -104622,7 +104622,7 @@ void m68000_device::not_w_das_if() // 4668 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -104797,7 +104797,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -104928,7 +104928,7 @@ void m68000_device::not_w_adr16_if() // 4678 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -105050,7 +105050,7 @@ void m68000_device::not_w_adr32_if() // 4679 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -105085,7 +105085,7 @@ void m68000_device::not_w_adr32_if() // 4679 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -105245,7 +105245,7 @@ void m68000_device::not_l_ais_if() // 4690 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -105276,7 +105276,7 @@ void m68000_device::not_l_ais_if() // 4690 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -105405,7 +105405,7 @@ void m68000_device::not_l_aips_if() // 4698 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -105441,7 +105441,7 @@ void m68000_device::not_l_aips_if() // 4698 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -105576,7 +105576,7 @@ void m68000_device::not_l_pais_if() // 46a0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -105607,7 +105607,7 @@ void m68000_device::not_l_pais_if() // 46a0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -105762,7 +105762,7 @@ void m68000_device::not_l_das_if() // 46a8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -105793,7 +105793,7 @@ void m68000_device::not_l_das_if() // 46a8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -105992,7 +105992,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -106023,7 +106023,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -106183,7 +106183,7 @@ void m68000_device::not_l_adr16_if() // 46b8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -106214,7 +106214,7 @@ void m68000_device::not_l_adr16_if() // 46b8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -106365,7 +106365,7 @@ void m68000_device::not_l_adr32_if() // 46b9 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -106400,7 +106400,7 @@ void m68000_device::not_l_adr32_if() // 46b9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -106431,7 +106431,7 @@ void m68000_device::not_l_adr32_if() // 46b9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -106661,7 +106661,7 @@ void m68000_device::move_ais_sr_if() // 46d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -106794,7 +106794,7 @@ void m68000_device::move_aips_sr_if() // 46d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -106930,7 +106930,7 @@ void m68000_device::move_pais_sr_if() // 46e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -107083,7 +107083,7 @@ void m68000_device::move_das_sr_if() // 46e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -107280,7 +107280,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -107433,7 +107433,7 @@ void m68000_device::move_adr16_sr_if() // 46f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -107577,7 +107577,7 @@ void m68000_device::move_adr32_sr_if() // 46f9 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -107612,7 +107612,7 @@ void m68000_device::move_adr32_sr_if() // 46f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -108076,7 +108076,7 @@ void m68000_device::move_i16u_sr_if() // 46fc ffff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -108263,7 +108263,7 @@ void m68000_device::nbcd_b_ais_if() // 4810 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -108368,7 +108368,7 @@ void m68000_device::nbcd_b_aips_if() // 4818 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -108476,7 +108476,7 @@ void m68000_device::nbcd_b_pais_if() // 4820 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -108601,7 +108601,7 @@ void m68000_device::nbcd_b_das_if() // 4828 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -108770,7 +108770,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -108895,7 +108895,7 @@ void m68000_device::nbcd_b_adr16_if() // 4838 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -109009,7 +109009,7 @@ void m68000_device::nbcd_b_adr32_if() // 4839 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -109046,7 +109046,7 @@ void m68000_device::nbcd_b_adr32_if() // 4839 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -109753,7 +109753,7 @@ void m68000_device::pea_adr32_if() // 4879 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = m_da[m_sp] - 4;
 	m_au_source = m_da_source[m_sp];
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -110647,7 +110647,7 @@ void m68000_device::movem_w_list_dais_if() // 48b0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = m_au - 2;
 	m_au_source = m_au_source;
 	// alu r=8 c=5 m=.....  i=.l..... 5 a=31:m_dbin d=0
@@ -111007,7 +111007,7 @@ void m68000_device::movem_w_list_adr32_if() // 48b9 ffff
 	m_aob = m_au;
 	m_aob_source = m_au_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// 04b smaw3
@@ -111658,7 +111658,7 @@ void m68000_device::movem_l_list_dais_if() // 48f0 fff8
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = m_au - 2;
 	m_au_source = m_au_source;
 	// alu r=8 c=5 m=.....  i=....... 5 a=31:m_dbin d=0
@@ -112068,7 +112068,7 @@ void m68000_device::movem_l_list_adr32_if() // 48f9 ffff
 	m_aob = m_au;
 	m_aob_source = m_au_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// 04b smaw3
@@ -112271,7 +112271,7 @@ void m68000_device::tst_b_ais_if() // 4a10 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -112359,7 +112359,7 @@ void m68000_device::tst_b_aips_if() // 4a18 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -112450,7 +112450,7 @@ void m68000_device::tst_b_pais_if() // 4a20 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -112557,7 +112557,7 @@ void m68000_device::tst_b_das_if() // 4a28 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -112710,7 +112710,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -112818,7 +112818,7 @@ void m68000_device::tst_b_adr16_if() // 4a38 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -112913,7 +112913,7 @@ void m68000_device::tst_b_adr32_if() // 4a39 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=14:m_da[m_movems] d=31:m_dbin
@@ -112953,7 +112953,7 @@ void m68000_device::tst_b_adr32_if() // 4a39 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -113080,7 +113080,7 @@ void m68000_device::tst_w_ais_if() // 4a50 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -113171,7 +113171,7 @@ void m68000_device::tst_w_aips_if() // 4a58 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -113265,7 +113265,7 @@ void m68000_device::tst_w_pais_if() // 4a60 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -113375,7 +113375,7 @@ void m68000_device::tst_w_das_if() // 4a68 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -113531,7 +113531,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -113642,7 +113642,7 @@ void m68000_device::tst_w_adr16_if() // 4a78 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -113742,7 +113742,7 @@ void m68000_device::tst_w_adr32_if() // 4a79 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=....... 8 a=14:m_da[m_movems] d=31:m_dbin
@@ -113780,7 +113780,7 @@ void m68000_device::tst_w_adr32_if() // 4a79 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -113911,7 +113911,7 @@ void m68000_device::tst_l_ais_if() // 4a90 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -113943,7 +113943,7 @@ void m68000_device::tst_l_ais_if() // 4a90 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -114023,7 +114023,7 @@ void m68000_device::tst_l_aips_if() // 4a98 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -114061,7 +114061,7 @@ void m68000_device::tst_l_aips_if() // 4a98 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -114148,7 +114148,7 @@ void m68000_device::tst_l_pais_if() // 4aa0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -114180,7 +114180,7 @@ void m68000_device::tst_l_pais_if() // 4aa0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -114287,7 +114287,7 @@ void m68000_device::tst_l_das_if() // 4aa8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -114319,7 +114319,7 @@ void m68000_device::tst_l_das_if() // 4aa8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -114472,7 +114472,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -114504,7 +114504,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -114618,7 +114618,7 @@ void m68000_device::tst_l_adr16_if() // 4ab8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -114650,7 +114650,7 @@ void m68000_device::tst_l_adr16_if() // 4ab8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -114753,7 +114753,7 @@ void m68000_device::tst_l_adr32_if() // 4ab9 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=.l..... 8 a=14:m_da[m_movems] d=31:m_dbin
@@ -114791,7 +114791,7 @@ void m68000_device::tst_l_adr32_if() // 4ab9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -114823,7 +114823,7 @@ void m68000_device::tst_l_adr32_if() // 4ab9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -114964,7 +114964,7 @@ void m68000_device::tas_ais_if() // 4ad0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0 && access_to_be_redone()) {
 		m_icount += 4;
@@ -115082,7 +115082,7 @@ void m68000_device::tas_aips_if() // 4ad8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0 && access_to_be_redone()) {
 		m_icount += 4;
@@ -115203,7 +115203,7 @@ void m68000_device::tas_pais_if() // 4ae0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0 && access_to_be_redone()) {
 		m_icount += 4;
@@ -115340,7 +115340,7 @@ void m68000_device::tas_das_if() // 4ae8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0 && access_to_be_redone()) {
 		m_icount += 4;
@@ -115523,7 +115523,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0 && access_to_be_redone()) {
 		m_icount += 4;
@@ -115661,7 +115661,7 @@ void m68000_device::tas_adr16_if() // 4af8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0 && access_to_be_redone()) {
 		m_icount += 4;
@@ -115786,7 +115786,7 @@ void m68000_device::tas_adr32_if() // 4af9 ffff
 	m_dcr = m_da[m_movems];
 	m_dcr_source = m_da_source[m_movems];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=14:m_da[m_movems] d=31:m_dbin
@@ -115826,7 +115826,7 @@ void m68000_device::tas_adr32_if() // 4af9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0 && access_to_be_redone()) {
 		m_icount += 4;
@@ -115960,7 +115960,7 @@ void m68000_device::movem_w_ais_list_if() // 4c90 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -115996,7 +115996,7 @@ ldmr4:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -116106,7 +116106,7 @@ void m68000_device::movem_w_aips_list_if() // 4c98 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -116142,7 +116142,7 @@ popm4:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -116279,7 +116279,7 @@ void m68000_device::movem_w_das_list_if() // 4ca8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -116315,7 +116315,7 @@ ldmr4:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -116495,7 +116495,7 @@ ldmx5:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -116531,7 +116531,7 @@ ldmr4:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -116666,7 +116666,7 @@ void m68000_device::movem_w_adr16_list_if() // 4cb8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -116702,7 +116702,7 @@ ldmr4:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -116832,7 +116832,7 @@ void m68000_device::movem_w_adr32_list_if() // 4cb9 ffff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -116869,7 +116869,7 @@ void m68000_device::movem_w_adr32_list_if() // 4cb9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -116905,7 +116905,7 @@ ldmr4:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -117396,7 +117396,7 @@ void m68000_device::movem_l_ais_list_if() // 4cd0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -117429,7 +117429,7 @@ ldmr3:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -117459,7 +117459,7 @@ ldmr3:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -117569,7 +117569,7 @@ void m68000_device::movem_l_aips_list_if() // 4cd8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -117602,7 +117602,7 @@ popm3:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -117632,7 +117632,7 @@ popm3:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -117769,7 +117769,7 @@ void m68000_device::movem_l_das_list_if() // 4ce8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -117802,7 +117802,7 @@ ldmr3:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -117832,7 +117832,7 @@ ldmr3:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -118012,7 +118012,7 @@ ldmx5:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -118045,7 +118045,7 @@ ldmr3:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -118075,7 +118075,7 @@ ldmr3:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -118210,7 +118210,7 @@ void m68000_device::movem_l_adr16_list_if() // 4cf8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -118243,7 +118243,7 @@ ldmr3:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -118273,7 +118273,7 @@ ldmr3:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -118403,7 +118403,7 @@ void m68000_device::movem_l_adr32_list_if() // 4cf9 ffff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -118440,7 +118440,7 @@ void m68000_device::movem_l_adr32_list_if() // 4cf9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -118473,7 +118473,7 @@ ldmr3:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -118503,7 +118503,7 @@ ldmr3:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -119119,7 +119119,7 @@ void m68000_device::trap_imm4_if() // 4e40 fff0
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -119146,7 +119146,7 @@ void m68000_device::trap_imm4_if() // 4e40 fff0
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -119374,7 +119374,7 @@ void m68000_device::unlk_as_if() // 4e58 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -119404,7 +119404,7 @@ void m68000_device::unlk_as_if() // 4e58 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -119755,7 +119755,7 @@ void m68000_device::rte_if() // 4e73 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -119784,7 +119784,7 @@ void m68000_device::rte_if() // 4e73 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -119820,7 +119820,7 @@ void m68000_device::rte_if() // 4e73 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -119919,7 +119919,7 @@ void m68000_device::rts_if() // 4e75 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -119946,7 +119946,7 @@ void m68000_device::rts_if() // 4e75 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -120211,7 +120211,7 @@ trpv3:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -120238,7 +120238,7 @@ trpv3:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -120335,7 +120335,7 @@ void m68000_device::rtr_if() // 4e77 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -120364,7 +120364,7 @@ void m68000_device::rtr_if() // 4e77 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -120400,7 +120400,7 @@ void m68000_device::rtr_if() // 4e77 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -121056,7 +121056,7 @@ void m68000_device::jsr_adr32_if() // 4eb9 ffff
 	m_pc = m_au;
 	m_pc_source = m_au_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = m_da[m_sp] - 4;
 	m_au_source = m_da_source[m_sp];
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -122103,7 +122103,7 @@ void m68000_device::addq_b_imm3_ais_if() // 5010 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -122208,7 +122208,7 @@ void m68000_device::addq_b_imm3_aips_if() // 5018 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -122316,7 +122316,7 @@ void m68000_device::addq_b_imm3_pais_if() // 5020 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -122441,7 +122441,7 @@ void m68000_device::addq_b_imm3_das_if() // 5028 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -122610,7 +122610,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -122735,7 +122735,7 @@ void m68000_device::addq_b_imm3_adr16_if() // 5038 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -122849,7 +122849,7 @@ void m68000_device::addq_b_imm3_adr32_if() // 5039 f1ff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -122886,7 +122886,7 @@ void m68000_device::addq_b_imm3_adr32_if() // 5039 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -123033,7 +123033,7 @@ void m68000_device::addq_w_imm3_as_if() // 5048 f1f8
 	m_aluo_source = m_da_source[ry];
 	// 259 roal2
 	set_16l(m_da[ry], m_aluo);
-	m_da_source[ry] = m_aluo_source;
+	m_da_source[ry] = telemetry_merge_source(m_da_source[ry], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -123093,7 +123093,7 @@ void m68000_device::addq_w_imm3_ais_if() // 5050 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -123206,7 +123206,7 @@ void m68000_device::addq_w_imm3_aips_if() // 5058 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -123322,7 +123322,7 @@ void m68000_device::addq_w_imm3_pais_if() // 5060 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -123455,7 +123455,7 @@ void m68000_device::addq_w_imm3_das_if() // 5068 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -123632,7 +123632,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -123765,7 +123765,7 @@ void m68000_device::addq_w_imm3_adr16_if() // 5078 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -123889,7 +123889,7 @@ void m68000_device::addq_w_imm3_adr32_if() // 5079 f1ff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -123924,7 +123924,7 @@ void m68000_device::addq_w_imm3_adr32_if() // 5079 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -124091,7 +124091,7 @@ void m68000_device::addq_l_imm3_as_if() // 5088 f1f8
 	m_aluo_source = m_da_source[ry];
 	// 259 roal2
 	set_16l(m_da[ry], m_aluo);
-	m_da_source[ry] = m_aluo_source;
+	m_da_source[ry] = telemetry_merge_source(m_da_source[ry], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -124148,7 +124148,7 @@ void m68000_device::addq_l_imm3_ais_if() // 5090 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -124179,7 +124179,7 @@ void m68000_device::addq_l_imm3_ais_if() // 5090 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -124310,7 +124310,7 @@ void m68000_device::addq_l_imm3_aips_if() // 5098 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -124346,7 +124346,7 @@ void m68000_device::addq_l_imm3_aips_if() // 5098 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -124483,7 +124483,7 @@ void m68000_device::addq_l_imm3_pais_if() // 50a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -124514,7 +124514,7 @@ void m68000_device::addq_l_imm3_pais_if() // 50a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -124671,7 +124671,7 @@ void m68000_device::addq_l_imm3_das_if() // 50a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -124702,7 +124702,7 @@ void m68000_device::addq_l_imm3_das_if() // 50a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -124903,7 +124903,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -124934,7 +124934,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -125096,7 +125096,7 @@ void m68000_device::addq_l_imm3_adr16_if() // 50b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -125127,7 +125127,7 @@ void m68000_device::addq_l_imm3_adr16_if() // 50b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -125280,7 +125280,7 @@ void m68000_device::addq_l_imm3_adr32_if() // 50b9 f1ff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -125315,7 +125315,7 @@ void m68000_device::addq_l_imm3_adr32_if() // 50b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -125346,7 +125346,7 @@ void m68000_device::addq_l_imm3_adr32_if() // 50b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -125803,7 +125803,7 @@ void m68000_device::st_ais_if() // 50d0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -125951,7 +125951,7 @@ void m68000_device::st_aips_if() // 50d8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -126102,7 +126102,7 @@ void m68000_device::st_pais_if() // 50e0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -126269,7 +126269,7 @@ void m68000_device::st_das_if() // 50e8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -126482,7 +126482,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -126650,7 +126650,7 @@ void m68000_device::st_adr16_if() // 50f8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -126805,7 +126805,7 @@ void m68000_device::st_adr32_if() // 50f9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -126845,7 +126845,7 @@ void m68000_device::st_adr32_if() // 50f9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -127034,7 +127034,7 @@ void m68000_device::subq_b_imm3_ais_if() // 5110 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -127139,7 +127139,7 @@ void m68000_device::subq_b_imm3_aips_if() // 5118 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -127247,7 +127247,7 @@ void m68000_device::subq_b_imm3_pais_if() // 5120 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -127372,7 +127372,7 @@ void m68000_device::subq_b_imm3_das_if() // 5128 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -127541,7 +127541,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -127666,7 +127666,7 @@ void m68000_device::subq_b_imm3_adr16_if() // 5138 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -127780,7 +127780,7 @@ void m68000_device::subq_b_imm3_adr32_if() // 5139 f1ff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -127817,7 +127817,7 @@ void m68000_device::subq_b_imm3_adr32_if() // 5139 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -127964,7 +127964,7 @@ void m68000_device::subq_w_imm3_as_if() // 5148 f1f8
 	m_aluo_source = m_da_source[ry];
 	// 259 roal2
 	set_16l(m_da[ry], m_aluo);
-	m_da_source[ry] = m_aluo_source;
+	m_da_source[ry] = telemetry_merge_source(m_da_source[ry], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -128024,7 +128024,7 @@ void m68000_device::subq_w_imm3_ais_if() // 5150 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -128137,7 +128137,7 @@ void m68000_device::subq_w_imm3_aips_if() // 5158 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -128253,7 +128253,7 @@ void m68000_device::subq_w_imm3_pais_if() // 5160 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -128386,7 +128386,7 @@ void m68000_device::subq_w_imm3_das_if() // 5168 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -128563,7 +128563,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -128696,7 +128696,7 @@ void m68000_device::subq_w_imm3_adr16_if() // 5178 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -128820,7 +128820,7 @@ void m68000_device::subq_w_imm3_adr32_if() // 5179 f1ff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -128855,7 +128855,7 @@ void m68000_device::subq_w_imm3_adr32_if() // 5179 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -129022,7 +129022,7 @@ void m68000_device::subq_l_imm3_as_if() // 5188 f1f8
 	m_aluo_source = m_da_source[ry];
 	// 259 roal2
 	set_16l(m_da[ry], m_aluo);
-	m_da_source[ry] = m_aluo_source;
+	m_da_source[ry] = telemetry_merge_source(m_da_source[ry], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -129079,7 +129079,7 @@ void m68000_device::subq_l_imm3_ais_if() // 5190 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -129110,7 +129110,7 @@ void m68000_device::subq_l_imm3_ais_if() // 5190 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -129241,7 +129241,7 @@ void m68000_device::subq_l_imm3_aips_if() // 5198 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -129277,7 +129277,7 @@ void m68000_device::subq_l_imm3_aips_if() // 5198 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -129414,7 +129414,7 @@ void m68000_device::subq_l_imm3_pais_if() // 51a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -129445,7 +129445,7 @@ void m68000_device::subq_l_imm3_pais_if() // 51a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -129602,7 +129602,7 @@ void m68000_device::subq_l_imm3_das_if() // 51a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -129633,7 +129633,7 @@ void m68000_device::subq_l_imm3_das_if() // 51a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -129834,7 +129834,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -129865,7 +129865,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -130027,7 +130027,7 @@ void m68000_device::subq_l_imm3_adr16_if() // 51b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -130058,7 +130058,7 @@ void m68000_device::subq_l_imm3_adr16_if() // 51b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -130211,7 +130211,7 @@ void m68000_device::subq_l_imm3_adr32_if() // 51b9 f1ff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -130246,7 +130246,7 @@ void m68000_device::subq_l_imm3_adr32_if() // 51b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -130277,7 +130277,7 @@ void m68000_device::subq_l_imm3_adr32_if() // 51b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -130734,7 +130734,7 @@ void m68000_device::sf_ais_if() // 51d0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -130882,7 +130882,7 @@ void m68000_device::sf_aips_if() // 51d8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -131033,7 +131033,7 @@ void m68000_device::sf_pais_if() // 51e0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -131200,7 +131200,7 @@ void m68000_device::sf_das_if() // 51e8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -131413,7 +131413,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -131581,7 +131581,7 @@ void m68000_device::sf_adr16_if() // 51f8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -131736,7 +131736,7 @@ void m68000_device::sf_adr32_if() // 51f9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -131776,7 +131776,7 @@ void m68000_device::sf_adr32_if() // 51f9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -132234,7 +132234,7 @@ void m68000_device::shi_ais_if() // 52d0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -132382,7 +132382,7 @@ void m68000_device::shi_aips_if() // 52d8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -132533,7 +132533,7 @@ void m68000_device::shi_pais_if() // 52e0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -132700,7 +132700,7 @@ void m68000_device::shi_das_if() // 52e8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -132913,7 +132913,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -133081,7 +133081,7 @@ void m68000_device::shi_adr16_if() // 52f8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -133236,7 +133236,7 @@ void m68000_device::shi_adr32_if() // 52f9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -133276,7 +133276,7 @@ void m68000_device::shi_adr32_if() // 52f9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -133734,7 +133734,7 @@ void m68000_device::sls_ais_if() // 53d0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -133882,7 +133882,7 @@ void m68000_device::sls_aips_if() // 53d8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -134033,7 +134033,7 @@ void m68000_device::sls_pais_if() // 53e0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -134200,7 +134200,7 @@ void m68000_device::sls_das_if() // 53e8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -134413,7 +134413,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -134581,7 +134581,7 @@ void m68000_device::sls_adr16_if() // 53f8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -134736,7 +134736,7 @@ void m68000_device::sls_adr32_if() // 53f9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -134776,7 +134776,7 @@ void m68000_device::sls_adr32_if() // 53f9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -135234,7 +135234,7 @@ void m68000_device::scc_ais_if() // 54d0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -135382,7 +135382,7 @@ void m68000_device::scc_aips_if() // 54d8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -135533,7 +135533,7 @@ void m68000_device::scc_pais_if() // 54e0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -135700,7 +135700,7 @@ void m68000_device::scc_das_if() // 54e8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -135913,7 +135913,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -136081,7 +136081,7 @@ void m68000_device::scc_adr16_if() // 54f8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -136236,7 +136236,7 @@ void m68000_device::scc_adr32_if() // 54f9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -136276,7 +136276,7 @@ void m68000_device::scc_adr32_if() // 54f9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -136734,7 +136734,7 @@ void m68000_device::scs_ais_if() // 55d0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -136882,7 +136882,7 @@ void m68000_device::scs_aips_if() // 55d8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -137033,7 +137033,7 @@ void m68000_device::scs_pais_if() // 55e0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -137200,7 +137200,7 @@ void m68000_device::scs_das_if() // 55e8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -137413,7 +137413,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -137581,7 +137581,7 @@ void m68000_device::scs_adr16_if() // 55f8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -137736,7 +137736,7 @@ void m68000_device::scs_adr32_if() // 55f9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -137776,7 +137776,7 @@ void m68000_device::scs_adr32_if() // 55f9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -138234,7 +138234,7 @@ void m68000_device::sne_ais_if() // 56d0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -138382,7 +138382,7 @@ void m68000_device::sne_aips_if() // 56d8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -138533,7 +138533,7 @@ void m68000_device::sne_pais_if() // 56e0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -138700,7 +138700,7 @@ void m68000_device::sne_das_if() // 56e8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -138913,7 +138913,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -139081,7 +139081,7 @@ void m68000_device::sne_adr16_if() // 56f8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -139236,7 +139236,7 @@ void m68000_device::sne_adr32_if() // 56f9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -139276,7 +139276,7 @@ void m68000_device::sne_adr32_if() // 56f9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -139734,7 +139734,7 @@ void m68000_device::seq_ais_if() // 57d0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -139882,7 +139882,7 @@ void m68000_device::seq_aips_if() // 57d8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -140033,7 +140033,7 @@ void m68000_device::seq_pais_if() // 57e0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -140200,7 +140200,7 @@ void m68000_device::seq_das_if() // 57e8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -140413,7 +140413,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -140581,7 +140581,7 @@ void m68000_device::seq_adr16_if() // 57f8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -140736,7 +140736,7 @@ void m68000_device::seq_adr32_if() // 57f9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -140776,7 +140776,7 @@ void m68000_device::seq_adr32_if() // 57f9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -141234,7 +141234,7 @@ void m68000_device::svc_ais_if() // 58d0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -141382,7 +141382,7 @@ void m68000_device::svc_aips_if() // 58d8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -141533,7 +141533,7 @@ void m68000_device::svc_pais_if() // 58e0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -141700,7 +141700,7 @@ void m68000_device::svc_das_if() // 58e8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -141913,7 +141913,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -142081,7 +142081,7 @@ void m68000_device::svc_adr16_if() // 58f8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -142236,7 +142236,7 @@ void m68000_device::svc_adr32_if() // 58f9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -142276,7 +142276,7 @@ void m68000_device::svc_adr32_if() // 58f9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -142734,7 +142734,7 @@ void m68000_device::svs_ais_if() // 59d0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -142882,7 +142882,7 @@ void m68000_device::svs_aips_if() // 59d8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -143033,7 +143033,7 @@ void m68000_device::svs_pais_if() // 59e0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -143200,7 +143200,7 @@ void m68000_device::svs_das_if() // 59e8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -143413,7 +143413,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -143581,7 +143581,7 @@ void m68000_device::svs_adr16_if() // 59f8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -143736,7 +143736,7 @@ void m68000_device::svs_adr32_if() // 59f9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -143776,7 +143776,7 @@ void m68000_device::svs_adr32_if() // 59f9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -144234,7 +144234,7 @@ void m68000_device::spl_ais_if() // 5ad0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -144382,7 +144382,7 @@ void m68000_device::spl_aips_if() // 5ad8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -144533,7 +144533,7 @@ void m68000_device::spl_pais_if() // 5ae0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -144700,7 +144700,7 @@ void m68000_device::spl_das_if() // 5ae8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -144913,7 +144913,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -145081,7 +145081,7 @@ void m68000_device::spl_adr16_if() // 5af8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -145236,7 +145236,7 @@ void m68000_device::spl_adr32_if() // 5af9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -145276,7 +145276,7 @@ void m68000_device::spl_adr32_if() // 5af9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -145734,7 +145734,7 @@ void m68000_device::smi_ais_if() // 5bd0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -145882,7 +145882,7 @@ void m68000_device::smi_aips_if() // 5bd8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -146033,7 +146033,7 @@ void m68000_device::smi_pais_if() // 5be0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -146200,7 +146200,7 @@ void m68000_device::smi_das_if() // 5be8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -146413,7 +146413,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -146581,7 +146581,7 @@ void m68000_device::smi_adr16_if() // 5bf8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -146736,7 +146736,7 @@ void m68000_device::smi_adr32_if() // 5bf9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -146776,7 +146776,7 @@ void m68000_device::smi_adr32_if() // 5bf9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -147234,7 +147234,7 @@ void m68000_device::sge_ais_if() // 5cd0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -147382,7 +147382,7 @@ void m68000_device::sge_aips_if() // 5cd8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -147533,7 +147533,7 @@ void m68000_device::sge_pais_if() // 5ce0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -147700,7 +147700,7 @@ void m68000_device::sge_das_if() // 5ce8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -147913,7 +147913,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -148081,7 +148081,7 @@ void m68000_device::sge_adr16_if() // 5cf8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -148236,7 +148236,7 @@ void m68000_device::sge_adr32_if() // 5cf9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -148276,7 +148276,7 @@ void m68000_device::sge_adr32_if() // 5cf9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -148734,7 +148734,7 @@ void m68000_device::slt_ais_if() // 5dd0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -148882,7 +148882,7 @@ void m68000_device::slt_aips_if() // 5dd8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -149033,7 +149033,7 @@ void m68000_device::slt_pais_if() // 5de0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -149200,7 +149200,7 @@ void m68000_device::slt_das_if() // 5de8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -149413,7 +149413,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -149581,7 +149581,7 @@ void m68000_device::slt_adr16_if() // 5df8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -149736,7 +149736,7 @@ void m68000_device::slt_adr32_if() // 5df9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -149776,7 +149776,7 @@ void m68000_device::slt_adr32_if() // 5df9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -150234,7 +150234,7 @@ void m68000_device::sgt_ais_if() // 5ed0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -150382,7 +150382,7 @@ void m68000_device::sgt_aips_if() // 5ed8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -150533,7 +150533,7 @@ void m68000_device::sgt_pais_if() // 5ee0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -150700,7 +150700,7 @@ void m68000_device::sgt_das_if() // 5ee8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -150913,7 +150913,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -151081,7 +151081,7 @@ void m68000_device::sgt_adr16_if() // 5ef8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -151236,7 +151236,7 @@ void m68000_device::sgt_adr32_if() // 5ef9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -151276,7 +151276,7 @@ void m68000_device::sgt_adr32_if() // 5ef9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -151734,7 +151734,7 @@ void m68000_device::sle_ais_if() // 5fd0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -151882,7 +151882,7 @@ void m68000_device::sle_aips_if() // 5fd8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -152033,7 +152033,7 @@ void m68000_device::sle_pais_if() // 5fe0 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -152200,7 +152200,7 @@ void m68000_device::sle_das_if() // 5fe8 fff8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -152413,7 +152413,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -152581,7 +152581,7 @@ void m68000_device::sle_adr16_if() // 5ff8 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -152736,7 +152736,7 @@ void m68000_device::sle_adr32_if() // 5ff9 ffff
 	m_dcr = m_dt;
 	m_dcr_source = m_dt_source;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=15 c=0 m=.....  i=b...... 8 a=9:m_dt d=31:m_dbin
@@ -152776,7 +152776,7 @@ void m68000_device::sle_adr32_if() // 5ff9 ffff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -156561,7 +156561,7 @@ void m68000_device::or_b_ais_dd_if() // 8010 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -156654,7 +156654,7 @@ void m68000_device::or_b_aips_dd_if() // 8018 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -156750,7 +156750,7 @@ void m68000_device::or_b_pais_dd_if() // 8020 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -156862,7 +156862,7 @@ void m68000_device::or_b_das_dd_if() // 8028 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -157020,7 +157020,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -157133,7 +157133,7 @@ void m68000_device::or_b_adr16_dd_if() // 8038 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -157233,7 +157233,7 @@ void m68000_device::or_b_adr32_dd_if() // 8039 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=2:m_da[rx] d=31:m_dbin
@@ -157273,7 +157273,7 @@ void m68000_device::or_b_adr32_dd_if() // 8039 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -157612,7 +157612,7 @@ void m68000_device::or_b_imm8_dd_if() // 803c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=31:m_dbin d=none
@@ -157760,7 +157760,7 @@ void m68000_device::or_w_ais_dd_if() // 8050 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -157856,7 +157856,7 @@ void m68000_device::or_w_aips_dd_if() // 8058 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -157955,7 +157955,7 @@ void m68000_device::or_w_pais_dd_if() // 8060 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -158070,7 +158070,7 @@ void m68000_device::or_w_das_dd_if() // 8068 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -158231,7 +158231,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -158347,7 +158347,7 @@ void m68000_device::or_w_adr16_dd_if() // 8078 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -158452,7 +158452,7 @@ void m68000_device::or_w_adr32_dd_if() // 8079 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=14 c=0 m=.....  i=....... 8 a=2:m_da[rx] d=31:m_dbin
@@ -158490,7 +158490,7 @@ void m68000_device::or_w_adr32_dd_if() // 8079 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -158840,7 +158840,7 @@ void m68000_device::or_w_imm16_dd_if() // 807c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=....... 8 a=31:m_dbin d=none
@@ -158995,7 +158995,7 @@ void m68000_device::or_l_ais_dd_if() // 8090 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -159027,7 +159027,7 @@ void m68000_device::or_l_ais_dd_if() // 8090 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -159117,7 +159117,7 @@ void m68000_device::or_l_aips_dd_if() // 8098 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -159155,7 +159155,7 @@ void m68000_device::or_l_aips_dd_if() // 8098 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -159252,7 +159252,7 @@ void m68000_device::or_l_pais_dd_if() // 80a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -159284,7 +159284,7 @@ void m68000_device::or_l_pais_dd_if() // 80a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -159401,7 +159401,7 @@ void m68000_device::or_l_das_dd_if() // 80a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -159433,7 +159433,7 @@ void m68000_device::or_l_das_dd_if() // 80a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -159596,7 +159596,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -159628,7 +159628,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -159752,7 +159752,7 @@ void m68000_device::or_l_adr16_dd_if() // 80b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -159784,7 +159784,7 @@ void m68000_device::or_l_adr16_dd_if() // 80b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -159897,7 +159897,7 @@ void m68000_device::or_l_adr32_dd_if() // 80b9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=14 c=0 m=.....  i=.l..... 8 a=2:m_da[rx] d=31:m_dbin
@@ -159935,7 +159935,7 @@ void m68000_device::or_l_adr32_dd_if() // 80b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -159967,7 +159967,7 @@ void m68000_device::or_l_adr32_dd_if() // 80b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -160418,7 +160418,7 @@ void m68000_device::or_l_imm32_dd_if() // 80bc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=14 c=0 m=.....  i=.l..... 8 a=31:m_dbin d=none
@@ -160537,7 +160537,7 @@ dvum3:
 	// 023 dvum3
 	m_t = m_isr & SR_C;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -160669,7 +160669,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -160696,7 +160696,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -160837,7 +160837,7 @@ dvum8:
 	// 252 dvum8
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -160851,7 +160851,7 @@ dvum7:
 	// 2d2 dvum7
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -160999,7 +160999,7 @@ void m68000_device::divu_w_ais_dd_if() // 80d0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -161045,7 +161045,7 @@ dvum3:
 	// 023 dvum3
 	m_t = m_isr & SR_C;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -161177,7 +161177,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -161204,7 +161204,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -161345,7 +161345,7 @@ dvum8:
 	// 252 dvum8
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -161359,7 +161359,7 @@ dvum7:
 	// 2d2 dvum7
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -161515,7 +161515,7 @@ void m68000_device::divu_w_aips_dd_if() // 80d8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -161561,7 +161561,7 @@ dvum3:
 	// 023 dvum3
 	m_t = m_isr & SR_C;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -161693,7 +161693,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -161720,7 +161720,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -161861,7 +161861,7 @@ dvum8:
 	// 252 dvum8
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -161875,7 +161875,7 @@ dvum7:
 	// 2d2 dvum7
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -162034,7 +162034,7 @@ void m68000_device::divu_w_pais_dd_if() // 80e0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -162080,7 +162080,7 @@ dvum3:
 	// 023 dvum3
 	m_t = m_isr & SR_C;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -162212,7 +162212,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -162239,7 +162239,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -162380,7 +162380,7 @@ dvum8:
 	// 252 dvum8
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -162394,7 +162394,7 @@ dvum7:
 	// 2d2 dvum7
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -162570,7 +162570,7 @@ void m68000_device::divu_w_das_dd_if() // 80e8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -162616,7 +162616,7 @@ dvum3:
 	// 023 dvum3
 	m_t = m_isr & SR_C;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -162748,7 +162748,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -162775,7 +162775,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -162916,7 +162916,7 @@ dvum8:
 	// 252 dvum8
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -162930,7 +162930,7 @@ dvum7:
 	// 2d2 dvum7
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -163150,7 +163150,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -163196,7 +163196,7 @@ dvum3:
 	// 023 dvum3
 	m_t = m_isr & SR_C;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -163328,7 +163328,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -163355,7 +163355,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -163496,7 +163496,7 @@ dvum8:
 	// 252 dvum8
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -163510,7 +163510,7 @@ dvum7:
 	// 2d2 dvum7
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -163686,7 +163686,7 @@ void m68000_device::divu_w_adr16_dd_if() // 80f8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -163732,7 +163732,7 @@ dvum3:
 	// 023 dvum3
 	m_t = m_isr & SR_C;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -163864,7 +163864,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -163891,7 +163891,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -164032,7 +164032,7 @@ dvum8:
 	// 252 dvum8
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -164046,7 +164046,7 @@ dvum7:
 	// 2d2 dvum7
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -164213,7 +164213,7 @@ void m68000_device::divu_w_adr32_dd_if() // 80f9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -164248,7 +164248,7 @@ void m68000_device::divu_w_adr32_dd_if() // 80f9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -164294,7 +164294,7 @@ dvum3:
 	// 023 dvum3
 	m_t = m_isr & SR_C;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -164426,7 +164426,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -164453,7 +164453,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -164594,7 +164594,7 @@ dvum8:
 	// 252 dvum8
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -164608,7 +164608,7 @@ dvum7:
 	// 2d2 dvum7
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -164828,7 +164828,7 @@ dvum3:
 	// 023 dvum3
 	m_t = m_isr & SR_C;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -164960,7 +164960,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -164987,7 +164987,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -165128,7 +165128,7 @@ dvum8:
 	// 252 dvum8
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -165142,7 +165142,7 @@ dvum7:
 	// 2d2 dvum7
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -165406,7 +165406,7 @@ dvum3:
 	// 023 dvum3
 	m_t = m_isr & SR_C;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -165538,7 +165538,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -165565,7 +165565,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -165706,7 +165706,7 @@ dvum8:
 	// 252 dvum8
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -165720,7 +165720,7 @@ dvum7:
 	// 2d2 dvum7
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -165861,7 +165861,7 @@ void m68000_device::divu_w_imm16_dd_if() // 80fc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -165914,7 +165914,7 @@ dvum3:
 	// 023 dvum3
 	m_t = m_isr & SR_C;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -166046,7 +166046,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -166073,7 +166073,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -166214,7 +166214,7 @@ dvum8:
 	// 252 dvum8
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -166228,7 +166228,7 @@ dvum7:
 	// 2d2 dvum7
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -166446,7 +166446,7 @@ void m68000_device::sbcd_pais_paid_if() // 8108 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -166474,7 +166474,7 @@ void m68000_device::sbcd_pais_paid_if() // 8108 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -166569,7 +166569,7 @@ void m68000_device::or_b_dd_ais_if() // 8110 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -166677,7 +166677,7 @@ void m68000_device::or_b_dd_aips_if() // 8118 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -166788,7 +166788,7 @@ void m68000_device::or_b_dd_pais_if() // 8120 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -166915,7 +166915,7 @@ void m68000_device::or_b_dd_das_if() // 8128 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -167088,7 +167088,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -167216,7 +167216,7 @@ void m68000_device::or_b_dd_adr16_if() // 8138 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -167331,7 +167331,7 @@ void m68000_device::or_b_dd_adr32_if() // 8139 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=14 c=0 m=.....  i=b...... 8 a=2:m_da[rx] d=31:m_dbin
@@ -167371,7 +167371,7 @@ void m68000_device::or_b_dd_adr32_if() // 8139 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -167467,7 +167467,7 @@ void m68000_device::or_w_dd_ais_if() // 8150 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -167583,7 +167583,7 @@ void m68000_device::or_w_dd_aips_if() // 8158 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -167702,7 +167702,7 @@ void m68000_device::or_w_dd_pais_if() // 8160 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -167837,7 +167837,7 @@ void m68000_device::or_w_dd_das_if() // 8168 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -168018,7 +168018,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -168154,7 +168154,7 @@ void m68000_device::or_w_dd_adr16_if() // 8178 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -168279,7 +168279,7 @@ void m68000_device::or_w_dd_adr32_if() // 8179 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=14 c=0 m=.....  i=....... 8 a=2:m_da[rx] d=31:m_dbin
@@ -168317,7 +168317,7 @@ void m68000_device::or_w_dd_adr32_if() // 8179 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -168419,7 +168419,7 @@ void m68000_device::or_l_dd_ais_if() // 8190 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -168451,7 +168451,7 @@ void m68000_device::or_l_dd_ais_if() // 8190 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -168582,7 +168582,7 @@ void m68000_device::or_l_dd_aips_if() // 8198 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -168620,7 +168620,7 @@ void m68000_device::or_l_dd_aips_if() // 8198 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -168758,7 +168758,7 @@ void m68000_device::or_l_dd_pais_if() // 81a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -168790,7 +168790,7 @@ void m68000_device::or_l_dd_pais_if() // 81a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -168948,7 +168948,7 @@ void m68000_device::or_l_dd_das_if() // 81a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -168980,7 +168980,7 @@ void m68000_device::or_l_dd_das_if() // 81a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -169184,7 +169184,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -169216,7 +169216,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -169381,7 +169381,7 @@ void m68000_device::or_l_dd_adr16_if() // 81b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -169413,7 +169413,7 @@ void m68000_device::or_l_dd_adr16_if() // 81b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -169567,7 +169567,7 @@ void m68000_device::or_l_dd_adr32_if() // 81b9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=14 c=0 m=.....  i=.l..... 8 a=2:m_da[rx] d=31:m_dbin
@@ -169605,7 +169605,7 @@ void m68000_device::or_l_dd_adr32_if() // 81b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -169637,7 +169637,7 @@ void m68000_device::or_l_dd_adr32_if() // 81b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -169787,7 +169787,7 @@ void m68000_device::divs_w_ds_dd_if() // 81c0 f1f8
 dvs04:
 	// 0a3 dvs04
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -169801,7 +169801,7 @@ dvs05:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -169930,7 +169930,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -169957,7 +169957,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -170068,7 +170068,7 @@ dvs10:
 	m_icount -= 2;
 	// 177 dvs11
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -170144,7 +170144,7 @@ dvs0c:
 	// 2d6 dvs0c
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -170190,7 +170190,7 @@ dvs0f:
 dvs13:
 	// 254 dvs13
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=6 m=.....  i=.l.d... 22 a=33:m_aluo d=-1
 	alu_sla1(m_aluo);
 	m_aluo_source = m_aluo_source;
@@ -170261,7 +170261,7 @@ dvs17:
 	m_ir_source = m_irc_source;
 	m_t = m_isr & SR_N;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -170284,7 +170284,7 @@ dvs1a:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -170307,7 +170307,7 @@ dvs1f:
 	m_aob_source = m_pc_source;
 	m_t = (m_isr & (SR_Z|SR_N)) != 0;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -170324,7 +170324,7 @@ dvs1e:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -170412,7 +170412,7 @@ void m68000_device::divs_w_ais_dd_if() // 81d0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -170459,7 +170459,7 @@ void m68000_device::divs_w_ais_dd_if() // 81d0 f1f8
 dvs04:
 	// 0a3 dvs04
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -170473,7 +170473,7 @@ dvs05:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -170602,7 +170602,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -170629,7 +170629,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -170740,7 +170740,7 @@ dvs10:
 	m_icount -= 2;
 	// 177 dvs11
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -170816,7 +170816,7 @@ dvs0c:
 	// 2d6 dvs0c
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -170862,7 +170862,7 @@ dvs0f:
 dvs13:
 	// 254 dvs13
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=6 m=.....  i=.l.d... 22 a=33:m_aluo d=-1
 	alu_sla1(m_aluo);
 	m_aluo_source = m_aluo_source;
@@ -170933,7 +170933,7 @@ dvs17:
 	m_ir_source = m_irc_source;
 	m_t = m_isr & SR_N;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -170956,7 +170956,7 @@ dvs1a:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -170979,7 +170979,7 @@ dvs1f:
 	m_aob_source = m_pc_source;
 	m_t = (m_isr & (SR_Z|SR_N)) != 0;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -170996,7 +170996,7 @@ dvs1e:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -171092,7 +171092,7 @@ void m68000_device::divs_w_aips_dd_if() // 81d8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -171139,7 +171139,7 @@ void m68000_device::divs_w_aips_dd_if() // 81d8 f1f8
 dvs04:
 	// 0a3 dvs04
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -171153,7 +171153,7 @@ dvs05:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -171282,7 +171282,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -171309,7 +171309,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -171420,7 +171420,7 @@ dvs10:
 	m_icount -= 2;
 	// 177 dvs11
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -171496,7 +171496,7 @@ dvs0c:
 	// 2d6 dvs0c
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -171542,7 +171542,7 @@ dvs0f:
 dvs13:
 	// 254 dvs13
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=6 m=.....  i=.l.d... 22 a=33:m_aluo d=-1
 	alu_sla1(m_aluo);
 	m_aluo_source = m_aluo_source;
@@ -171613,7 +171613,7 @@ dvs17:
 	m_ir_source = m_irc_source;
 	m_t = m_isr & SR_N;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -171636,7 +171636,7 @@ dvs1a:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -171659,7 +171659,7 @@ dvs1f:
 	m_aob_source = m_pc_source;
 	m_t = (m_isr & (SR_Z|SR_N)) != 0;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -171676,7 +171676,7 @@ dvs1e:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -171775,7 +171775,7 @@ void m68000_device::divs_w_pais_dd_if() // 81e0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -171822,7 +171822,7 @@ void m68000_device::divs_w_pais_dd_if() // 81e0 f1f8
 dvs04:
 	// 0a3 dvs04
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -171836,7 +171836,7 @@ dvs05:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -171965,7 +171965,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -171992,7 +171992,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -172103,7 +172103,7 @@ dvs10:
 	m_icount -= 2;
 	// 177 dvs11
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -172179,7 +172179,7 @@ dvs0c:
 	// 2d6 dvs0c
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -172225,7 +172225,7 @@ dvs0f:
 dvs13:
 	// 254 dvs13
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=6 m=.....  i=.l.d... 22 a=33:m_aluo d=-1
 	alu_sla1(m_aluo);
 	m_aluo_source = m_aluo_source;
@@ -172296,7 +172296,7 @@ dvs17:
 	m_ir_source = m_irc_source;
 	m_t = m_isr & SR_N;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -172319,7 +172319,7 @@ dvs1a:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -172342,7 +172342,7 @@ dvs1f:
 	m_aob_source = m_pc_source;
 	m_t = (m_isr & (SR_Z|SR_N)) != 0;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -172359,7 +172359,7 @@ dvs1e:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -172475,7 +172475,7 @@ void m68000_device::divs_w_das_dd_if() // 81e8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -172522,7 +172522,7 @@ void m68000_device::divs_w_das_dd_if() // 81e8 f1f8
 dvs04:
 	// 0a3 dvs04
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -172536,7 +172536,7 @@ dvs05:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -172665,7 +172665,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -172692,7 +172692,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -172803,7 +172803,7 @@ dvs10:
 	m_icount -= 2;
 	// 177 dvs11
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -172879,7 +172879,7 @@ dvs0c:
 	// 2d6 dvs0c
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -172925,7 +172925,7 @@ dvs0f:
 dvs13:
 	// 254 dvs13
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=6 m=.....  i=.l.d... 22 a=33:m_aluo d=-1
 	alu_sla1(m_aluo);
 	m_aluo_source = m_aluo_source;
@@ -172996,7 +172996,7 @@ dvs17:
 	m_ir_source = m_irc_source;
 	m_t = m_isr & SR_N;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -173019,7 +173019,7 @@ dvs1a:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -173042,7 +173042,7 @@ dvs1f:
 	m_aob_source = m_pc_source;
 	m_t = (m_isr & (SR_Z|SR_N)) != 0;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -173059,7 +173059,7 @@ dvs1e:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -173219,7 +173219,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -173266,7 +173266,7 @@ adsw2:
 dvs04:
 	// 0a3 dvs04
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -173280,7 +173280,7 @@ dvs05:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -173409,7 +173409,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -173436,7 +173436,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -173547,7 +173547,7 @@ dvs10:
 	m_icount -= 2;
 	// 177 dvs11
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -173623,7 +173623,7 @@ dvs0c:
 	// 2d6 dvs0c
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -173669,7 +173669,7 @@ dvs0f:
 dvs13:
 	// 254 dvs13
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=6 m=.....  i=.l.d... 22 a=33:m_aluo d=-1
 	alu_sla1(m_aluo);
 	m_aluo_source = m_aluo_source;
@@ -173740,7 +173740,7 @@ dvs17:
 	m_ir_source = m_irc_source;
 	m_t = m_isr & SR_N;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -173763,7 +173763,7 @@ dvs1a:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -173786,7 +173786,7 @@ dvs1f:
 	m_aob_source = m_pc_source;
 	m_t = (m_isr & (SR_Z|SR_N)) != 0;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -173803,7 +173803,7 @@ dvs1e:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -173919,7 +173919,7 @@ void m68000_device::divs_w_adr16_dd_if() // 81f8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -173966,7 +173966,7 @@ void m68000_device::divs_w_adr16_dd_if() // 81f8 f1ff
 dvs04:
 	// 0a3 dvs04
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -173980,7 +173980,7 @@ dvs05:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -174109,7 +174109,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -174136,7 +174136,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -174247,7 +174247,7 @@ dvs10:
 	m_icount -= 2;
 	// 177 dvs11
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -174323,7 +174323,7 @@ dvs0c:
 	// 2d6 dvs0c
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -174369,7 +174369,7 @@ dvs0f:
 dvs13:
 	// 254 dvs13
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=6 m=.....  i=.l.d... 22 a=33:m_aluo d=-1
 	alu_sla1(m_aluo);
 	m_aluo_source = m_aluo_source;
@@ -174440,7 +174440,7 @@ dvs17:
 	m_ir_source = m_irc_source;
 	m_t = m_isr & SR_N;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -174463,7 +174463,7 @@ dvs1a:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -174486,7 +174486,7 @@ dvs1f:
 	m_aob_source = m_pc_source;
 	m_t = (m_isr & (SR_Z|SR_N)) != 0;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -174503,7 +174503,7 @@ dvs1e:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -174610,7 +174610,7 @@ void m68000_device::divs_w_adr32_dd_if() // 81f9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -174645,7 +174645,7 @@ void m68000_device::divs_w_adr32_dd_if() // 81f9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -174692,7 +174692,7 @@ void m68000_device::divs_w_adr32_dd_if() // 81f9 f1ff
 dvs04:
 	// 0a3 dvs04
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -174706,7 +174706,7 @@ dvs05:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -174835,7 +174835,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -174862,7 +174862,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -174973,7 +174973,7 @@ dvs10:
 	m_icount -= 2;
 	// 177 dvs11
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -175049,7 +175049,7 @@ dvs0c:
 	// 2d6 dvs0c
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -175095,7 +175095,7 @@ dvs0f:
 dvs13:
 	// 254 dvs13
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=6 m=.....  i=.l.d... 22 a=33:m_aluo d=-1
 	alu_sla1(m_aluo);
 	m_aluo_source = m_aluo_source;
@@ -175166,7 +175166,7 @@ dvs17:
 	m_ir_source = m_irc_source;
 	m_t = m_isr & SR_N;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -175189,7 +175189,7 @@ dvs1a:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -175212,7 +175212,7 @@ dvs1f:
 	m_aob_source = m_pc_source;
 	m_t = (m_isr & (SR_Z|SR_N)) != 0;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -175229,7 +175229,7 @@ dvs1e:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -175390,7 +175390,7 @@ void m68000_device::divs_w_dpc_dd_if() // 81fa f1ff
 dvs04:
 	// 0a3 dvs04
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -175404,7 +175404,7 @@ dvs05:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -175533,7 +175533,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -175560,7 +175560,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -175671,7 +175671,7 @@ dvs10:
 	m_icount -= 2;
 	// 177 dvs11
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -175747,7 +175747,7 @@ dvs0c:
 	// 2d6 dvs0c
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -175793,7 +175793,7 @@ dvs0f:
 dvs13:
 	// 254 dvs13
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=6 m=.....  i=.l.d... 22 a=33:m_aluo d=-1
 	alu_sla1(m_aluo);
 	m_aluo_source = m_aluo_source;
@@ -175864,7 +175864,7 @@ dvs17:
 	m_ir_source = m_irc_source;
 	m_t = m_isr & SR_N;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -175887,7 +175887,7 @@ dvs1a:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -175910,7 +175910,7 @@ dvs1f:
 	m_aob_source = m_pc_source;
 	m_t = (m_isr & (SR_Z|SR_N)) != 0;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -175927,7 +175927,7 @@ dvs1e:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -176132,7 +176132,7 @@ adsw2:
 dvs04:
 	// 0a3 dvs04
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -176146,7 +176146,7 @@ dvs05:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -176275,7 +176275,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -176302,7 +176302,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -176413,7 +176413,7 @@ dvs10:
 	m_icount -= 2;
 	// 177 dvs11
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -176489,7 +176489,7 @@ dvs0c:
 	// 2d6 dvs0c
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -176535,7 +176535,7 @@ dvs0f:
 dvs13:
 	// 254 dvs13
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=6 m=.....  i=.l.d... 22 a=33:m_aluo d=-1
 	alu_sla1(m_aluo);
 	m_aluo_source = m_aluo_source;
@@ -176606,7 +176606,7 @@ dvs17:
 	m_ir_source = m_irc_source;
 	m_t = m_isr & SR_N;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -176629,7 +176629,7 @@ dvs1a:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -176652,7 +176652,7 @@ dvs1f:
 	m_aob_source = m_pc_source;
 	m_t = (m_isr & (SR_Z|SR_N)) != 0;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -176669,7 +176669,7 @@ dvs1e:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -176750,7 +176750,7 @@ void m68000_device::divs_w_imm16_dd_if() // 81fc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -176804,7 +176804,7 @@ void m68000_device::divs_w_imm16_dd_if() // 81fc f1ff
 dvs04:
 	// 0a3 dvs04
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -176818,7 +176818,7 @@ dvs05:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, high16(m_da[rx]));
-	m_at_source = m_da_source[rx];
+	m_at_source = telemetry_merge_source(m_at_source, m_da_source[rx]);
 	m_au = merge_16_32(0, m_ftu) + 1;
 	m_au_source = -1;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=16:m_da[rx] d=-1
@@ -176947,7 +176947,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -176974,7 +176974,7 @@ dvur2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -177085,7 +177085,7 @@ dvs10:
 	m_icount -= 2;
 	// 177 dvs11
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -177161,7 +177161,7 @@ dvs0c:
 	// 2d6 dvs0c
 	m_t = !(m_au & 0x3f);
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.nzvc  i=.l.d.i. 2 a=alub d=33:m_aluo
 	alu_sub(m_alub, m_aluo);
 	m_aluo_source = m_alub_source;
@@ -177207,7 +177207,7 @@ dvs0f:
 dvs13:
 	// 254 dvs13
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=6 m=.....  i=.l.d... 22 a=33:m_aluo d=-1
 	alu_sla1(m_aluo);
 	m_aluo_source = m_aluo_source;
@@ -177278,7 +177278,7 @@ dvs17:
 	m_ir_source = m_irc_source;
 	m_t = m_isr & SR_N;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -177301,7 +177301,7 @@ dvs1a:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -177324,7 +177324,7 @@ dvs1f:
 	m_aob_source = m_pc_source;
 	m_t = (m_isr & (SR_Z|SR_N)) != 0;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	m_au = m_pc + 2;
 	m_au_source = m_pc_source;
 	// alu r=1 c=1 m=.nzvc  i=.l.d.i. 1 a=33:m_aluo d=-1
@@ -177341,7 +177341,7 @@ dvs1e:
 	m_alub = m_aluo;
 	m_alub_source = m_aluo_source;
 	set_16l(m_at, m_aluo);
-	m_at_source = m_aluo_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_aluo_source);
 	// alu r=1 c=2 m=.....  i=.l.d... 2 a=25:m_at d=0
 	alu_sub(high16(m_at), 0x0000);
 	m_aluo_source = m_at_source;
@@ -177484,7 +177484,7 @@ void m68000_device::sub_b_ais_dd_if() // 9010 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -177573,7 +177573,7 @@ void m68000_device::sub_b_aips_dd_if() // 9018 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -177665,7 +177665,7 @@ void m68000_device::sub_b_pais_dd_if() // 9020 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -177774,7 +177774,7 @@ void m68000_device::sub_b_das_dd_if() // 9028 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -177927,7 +177927,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -178036,7 +178036,7 @@ void m68000_device::sub_b_adr16_dd_if() // 9038 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -178134,7 +178134,7 @@ void m68000_device::sub_b_adr32_dd_if() // 9039 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -178171,7 +178171,7 @@ void m68000_device::sub_b_adr32_dd_if() // 9039 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -178501,7 +178501,7 @@ void m68000_device::sub_b_imm8_dd_if() // 903c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -178698,7 +178698,7 @@ void m68000_device::sub_w_ais_dd_if() // 9050 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -178790,7 +178790,7 @@ void m68000_device::sub_w_aips_dd_if() // 9058 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -178885,7 +178885,7 @@ void m68000_device::sub_w_pais_dd_if() // 9060 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -178997,7 +178997,7 @@ void m68000_device::sub_w_das_dd_if() // 9068 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -179153,7 +179153,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -179265,7 +179265,7 @@ void m68000_device::sub_w_adr16_dd_if() // 9078 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -179368,7 +179368,7 @@ void m68000_device::sub_w_adr32_dd_if() // 9079 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -179403,7 +179403,7 @@ void m68000_device::sub_w_adr32_dd_if() // 9079 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -179744,7 +179744,7 @@ void m68000_device::sub_w_imm16_dd_if() // 907c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -179958,7 +179958,7 @@ void m68000_device::sub_l_ais_dd_if() // 9090 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -179989,7 +179989,7 @@ void m68000_device::sub_l_ais_dd_if() // 9090 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -180078,7 +180078,7 @@ void m68000_device::sub_l_aips_dd_if() // 9098 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -180114,7 +180114,7 @@ void m68000_device::sub_l_aips_dd_if() // 9098 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -180209,7 +180209,7 @@ void m68000_device::sub_l_pais_dd_if() // 90a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -180240,7 +180240,7 @@ void m68000_device::sub_l_pais_dd_if() // 90a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -180355,7 +180355,7 @@ void m68000_device::sub_l_das_dd_if() // 90a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -180386,7 +180386,7 @@ void m68000_device::sub_l_das_dd_if() // 90a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -180545,7 +180545,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -180576,7 +180576,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -180696,7 +180696,7 @@ void m68000_device::sub_l_adr16_dd_if() // 90b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -180727,7 +180727,7 @@ void m68000_device::sub_l_adr16_dd_if() // 90b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -180838,7 +180838,7 @@ void m68000_device::sub_l_adr32_dd_if() // 90b9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -180873,7 +180873,7 @@ void m68000_device::sub_l_adr32_dd_if() // 90b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -180904,7 +180904,7 @@ void m68000_device::sub_l_adr32_dd_if() // 90b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -181345,7 +181345,7 @@ void m68000_device::sub_l_imm32_dd_if() // 90bc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -181446,7 +181446,7 @@ void m68000_device::suba_w_ds_ad_if() // 90c0 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -181507,7 +181507,7 @@ void m68000_device::suba_w_as_ad_if() // 90c8 f1f8
 	m_aluo_source = m_da_source[ry];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -181568,7 +181568,7 @@ void m68000_device::suba_w_ais_ad_if() // 90d0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -181599,7 +181599,7 @@ void m68000_device::suba_w_ais_ad_if() // 90d0 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -181668,7 +181668,7 @@ void m68000_device::suba_w_aips_ad_if() // 90d8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -181699,7 +181699,7 @@ void m68000_device::suba_w_aips_ad_if() // 90d8 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -181771,7 +181771,7 @@ void m68000_device::suba_w_pais_ad_if() // 90e0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -181802,7 +181802,7 @@ void m68000_device::suba_w_pais_ad_if() // 90e0 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -181891,7 +181891,7 @@ void m68000_device::suba_w_das_ad_if() // 90e8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -181922,7 +181922,7 @@ void m68000_device::suba_w_das_ad_if() // 90e8 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -182055,7 +182055,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -182086,7 +182086,7 @@ adsw2:
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -182175,7 +182175,7 @@ void m68000_device::suba_w_adr16_ad_if() // 90f8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -182206,7 +182206,7 @@ void m68000_device::suba_w_adr16_ad_if() // 90f8 f1ff
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -182286,7 +182286,7 @@ void m68000_device::suba_w_adr32_ad_if() // 90f9 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -182321,7 +182321,7 @@ void m68000_device::suba_w_adr32_ad_if() // 90f9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -182352,7 +182352,7 @@ void m68000_device::suba_w_adr32_ad_if() // 90f9 f1ff
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -182470,7 +182470,7 @@ void m68000_device::suba_w_dpc_ad_if() // 90fa f1ff
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -182632,7 +182632,7 @@ adsw2:
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -182686,7 +182686,7 @@ void m68000_device::suba_w_imm16_ad_if() // 90fc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -182724,7 +182724,7 @@ void m68000_device::suba_w_imm16_ad_if() // 90fc f1ff
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -182850,7 +182850,7 @@ void m68000_device::subx_b_pais_paid_if() // 9108 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -182878,7 +182878,7 @@ void m68000_device::subx_b_pais_paid_if() // 9108 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -182970,7 +182970,7 @@ void m68000_device::sub_b_dd_ais_if() // 9110 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -183074,7 +183074,7 @@ void m68000_device::sub_b_dd_aips_if() // 9118 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -183181,7 +183181,7 @@ void m68000_device::sub_b_dd_pais_if() // 9120 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -183305,7 +183305,7 @@ void m68000_device::sub_b_dd_das_if() // 9128 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -183473,7 +183473,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -183597,7 +183597,7 @@ void m68000_device::sub_b_dd_adr16_if() // 9138 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -183710,7 +183710,7 @@ void m68000_device::sub_b_dd_adr32_if() // 9139 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -183747,7 +183747,7 @@ void m68000_device::sub_b_dd_adr32_if() // 9139 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -183904,7 +183904,7 @@ void m68000_device::subx_w_pais_paid_if() // 9148 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -183935,7 +183935,7 @@ void m68000_device::subx_w_pais_paid_if() // 9148 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -184035,7 +184035,7 @@ void m68000_device::sub_w_dd_ais_if() // 9150 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -184147,7 +184147,7 @@ void m68000_device::sub_w_dd_aips_if() // 9158 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -184262,7 +184262,7 @@ void m68000_device::sub_w_dd_pais_if() // 9160 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -184394,7 +184394,7 @@ void m68000_device::sub_w_dd_das_if() // 9168 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -184570,7 +184570,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -184702,7 +184702,7 @@ void m68000_device::sub_w_dd_adr16_if() // 9178 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -184825,7 +184825,7 @@ void m68000_device::sub_w_dd_adr32_if() // 9179 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -184860,7 +184860,7 @@ void m68000_device::sub_w_dd_adr32_if() // 9179 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -185033,7 +185033,7 @@ void m68000_device::subx_l_pais_paid_if() // 9188 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -185064,7 +185064,7 @@ void m68000_device::subx_l_pais_paid_if() // 9188 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -185091,7 +185091,7 @@ void m68000_device::subx_l_pais_paid_if() // 9188 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -185124,7 +185124,7 @@ void m68000_device::subx_l_pais_paid_if() // 9188 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -185248,7 +185248,7 @@ void m68000_device::sub_l_dd_ais_if() // 9190 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -185279,7 +185279,7 @@ void m68000_device::sub_l_dd_ais_if() // 9190 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -185409,7 +185409,7 @@ void m68000_device::sub_l_dd_aips_if() // 9198 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -185445,7 +185445,7 @@ void m68000_device::sub_l_dd_aips_if() // 9198 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -185581,7 +185581,7 @@ void m68000_device::sub_l_dd_pais_if() // 91a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -185612,7 +185612,7 @@ void m68000_device::sub_l_dd_pais_if() // 91a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -185768,7 +185768,7 @@ void m68000_device::sub_l_dd_das_if() // 91a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -185799,7 +185799,7 @@ void m68000_device::sub_l_dd_das_if() // 91a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -185999,7 +185999,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -186030,7 +186030,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -186191,7 +186191,7 @@ void m68000_device::sub_l_dd_adr16_if() // 91b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -186222,7 +186222,7 @@ void m68000_device::sub_l_dd_adr16_if() // 91b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -186374,7 +186374,7 @@ void m68000_device::sub_l_dd_adr32_if() // 91b9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -186409,7 +186409,7 @@ void m68000_device::sub_l_dd_adr32_if() // 91b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -186440,7 +186440,7 @@ void m68000_device::sub_l_dd_adr32_if() // 91b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -186573,7 +186573,7 @@ void m68000_device::suba_l_ds_ad_if() // 91c0 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 3c0 rorl2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -186634,7 +186634,7 @@ void m68000_device::suba_l_as_ad_if() // 91c8 f1f8
 	m_aluo_source = m_da_source[ry];
 	// 3c0 rorl2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -186692,7 +186692,7 @@ void m68000_device::suba_l_ais_ad_if() // 91d0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -186723,7 +186723,7 @@ void m68000_device::suba_l_ais_ad_if() // 91d0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -186754,7 +186754,7 @@ void m68000_device::suba_l_ais_ad_if() // 91d0 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=5 c=3 m=.....  i=......f 10 a=alub d=15:m_da[rx]
 	alu_subc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -186810,7 +186810,7 @@ void m68000_device::suba_l_aips_ad_if() // 91d8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -186846,7 +186846,7 @@ void m68000_device::suba_l_aips_ad_if() // 91d8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -186877,7 +186877,7 @@ void m68000_device::suba_l_aips_ad_if() // 91d8 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=5 c=3 m=.....  i=......f 10 a=alub d=15:m_da[rx]
 	alu_subc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -186939,7 +186939,7 @@ void m68000_device::suba_l_pais_ad_if() // 91e0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -186970,7 +186970,7 @@ void m68000_device::suba_l_pais_ad_if() // 91e0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -187001,7 +187001,7 @@ void m68000_device::suba_l_pais_ad_if() // 91e0 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=5 c=3 m=.....  i=......f 10 a=alub d=15:m_da[rx]
 	alu_subc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -187083,7 +187083,7 @@ void m68000_device::suba_l_das_ad_if() // 91e8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -187114,7 +187114,7 @@ void m68000_device::suba_l_das_ad_if() // 91e8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -187145,7 +187145,7 @@ void m68000_device::suba_l_das_ad_if() // 91e8 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=5 c=3 m=.....  i=......f 10 a=alub d=15:m_da[rx]
 	alu_subc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -187271,7 +187271,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -187302,7 +187302,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -187333,7 +187333,7 @@ adsl2:
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=5 c=3 m=.....  i=......f 10 a=alub d=15:m_da[rx]
 	alu_subc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -187420,7 +187420,7 @@ void m68000_device::suba_l_adr16_ad_if() // 91f8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -187451,7 +187451,7 @@ void m68000_device::suba_l_adr16_ad_if() // 91f8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -187482,7 +187482,7 @@ void m68000_device::suba_l_adr16_ad_if() // 91f8 f1ff
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=5 c=3 m=.....  i=......f 10 a=alub d=15:m_da[rx]
 	alu_subc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -187560,7 +187560,7 @@ void m68000_device::suba_l_adr32_ad_if() // 91f9 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -187595,7 +187595,7 @@ void m68000_device::suba_l_adr32_ad_if() // 91f9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -187626,7 +187626,7 @@ void m68000_device::suba_l_adr32_ad_if() // 91f9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -187657,7 +187657,7 @@ void m68000_device::suba_l_adr32_ad_if() // 91f9 f1ff
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=5 c=3 m=.....  i=......f 10 a=alub d=15:m_da[rx]
 	alu_subc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -187798,7 +187798,7 @@ void m68000_device::suba_l_dpc_ad_if() // 91fa f1ff
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=5 c=3 m=.....  i=......f 10 a=alub d=15:m_da[rx]
 	alu_subc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -187983,7 +187983,7 @@ adsl2:
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=5 c=3 m=.....  i=......f 10 a=alub d=15:m_da[rx]
 	alu_subc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -188061,7 +188061,7 @@ void m68000_device::suba_l_imm32_ad_if() // 91fc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -188099,7 +188099,7 @@ void m68000_device::suba_l_imm32_ad_if() // 91fc f1ff
 	m_aluo_source = m_da_source[rx];
 	// 3c0 rorl2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -188213,7 +188213,7 @@ void m68000_device::cmp_b_ais_dd_if() // b010 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -188300,7 +188300,7 @@ void m68000_device::cmp_b_aips_dd_if() // b018 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -188390,7 +188390,7 @@ void m68000_device::cmp_b_pais_dd_if() // b020 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -188497,7 +188497,7 @@ void m68000_device::cmp_b_das_dd_if() // b028 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -188648,7 +188648,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -188755,7 +188755,7 @@ void m68000_device::cmp_b_adr16_dd_if() // b038 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -188851,7 +188851,7 @@ void m68000_device::cmp_b_adr32_dd_if() // b039 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -188888,7 +188888,7 @@ void m68000_device::cmp_b_adr32_dd_if() // b039 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -189212,7 +189212,7 @@ void m68000_device::cmp_b_imm8_dd_if() // b03c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -189403,7 +189403,7 @@ void m68000_device::cmp_w_ais_dd_if() // b050 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -189493,7 +189493,7 @@ void m68000_device::cmp_w_aips_dd_if() // b058 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -189586,7 +189586,7 @@ void m68000_device::cmp_w_pais_dd_if() // b060 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -189696,7 +189696,7 @@ void m68000_device::cmp_w_das_dd_if() // b068 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -189850,7 +189850,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -189960,7 +189960,7 @@ void m68000_device::cmp_w_adr16_dd_if() // b078 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -190061,7 +190061,7 @@ void m68000_device::cmp_w_adr32_dd_if() // b079 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -190096,7 +190096,7 @@ void m68000_device::cmp_w_adr32_dd_if() // b079 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -190431,7 +190431,7 @@ void m68000_device::cmp_w_imm16_dd_if() // b07c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -190631,7 +190631,7 @@ void m68000_device::cmp_l_ais_dd_if() // b090 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -190662,7 +190662,7 @@ void m68000_device::cmp_l_ais_dd_if() // b090 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -190747,7 +190747,7 @@ void m68000_device::cmp_l_aips_dd_if() // b098 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -190783,7 +190783,7 @@ void m68000_device::cmp_l_aips_dd_if() // b098 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -190874,7 +190874,7 @@ void m68000_device::cmp_l_pais_dd_if() // b0a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -190905,7 +190905,7 @@ void m68000_device::cmp_l_pais_dd_if() // b0a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -191016,7 +191016,7 @@ void m68000_device::cmp_l_das_dd_if() // b0a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -191047,7 +191047,7 @@ void m68000_device::cmp_l_das_dd_if() // b0a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -191202,7 +191202,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -191233,7 +191233,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -191349,7 +191349,7 @@ void m68000_device::cmp_l_adr16_dd_if() // b0b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -191380,7 +191380,7 @@ void m68000_device::cmp_l_adr16_dd_if() // b0b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -191487,7 +191487,7 @@ void m68000_device::cmp_l_adr32_dd_if() // b0b9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -191522,7 +191522,7 @@ void m68000_device::cmp_l_adr32_dd_if() // b0b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -191553,7 +191553,7 @@ void m68000_device::cmp_l_adr32_dd_if() // b0b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -191982,7 +191982,7 @@ void m68000_device::cmp_l_imm32_dd_if() // b0bc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -192191,7 +192191,7 @@ void m68000_device::cmpa_w_ais_ad_if() // b0d0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -192287,7 +192287,7 @@ void m68000_device::cmpa_w_aips_ad_if() // b0d8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -192386,7 +192386,7 @@ void m68000_device::cmpa_w_pais_ad_if() // b0e0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -192502,7 +192502,7 @@ void m68000_device::cmpa_w_das_ad_if() // b0e8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -192662,7 +192662,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -192778,7 +192778,7 @@ void m68000_device::cmpa_w_adr16_ad_if() // b0f8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -192885,7 +192885,7 @@ void m68000_device::cmpa_w_adr32_ad_if() // b0f9 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -192920,7 +192920,7 @@ void m68000_device::cmpa_w_adr32_ad_if() // b0f9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -193273,7 +193273,7 @@ void m68000_device::cmpa_w_imm16_ad_if() // b0fc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -193425,7 +193425,7 @@ void m68000_device::cmpm_b_aips_aipd_if() // b108 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -193452,7 +193452,7 @@ void m68000_device::cmpm_b_aips_aipd_if() // b108 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -193527,7 +193527,7 @@ void m68000_device::eor_b_dd_ais_if() // b110 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -193635,7 +193635,7 @@ void m68000_device::eor_b_dd_aips_if() // b118 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -193746,7 +193746,7 @@ void m68000_device::eor_b_dd_pais_if() // b120 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -193873,7 +193873,7 @@ void m68000_device::eor_b_dd_das_if() // b128 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -194046,7 +194046,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -194174,7 +194174,7 @@ void m68000_device::eor_b_dd_adr16_if() // b138 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -194289,7 +194289,7 @@ void m68000_device::eor_b_dd_adr32_if() // b139 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=13 c=0 m=.....  i=b...... 9 a=2:m_da[rx] d=31:m_dbin
@@ -194329,7 +194329,7 @@ void m68000_device::eor_b_dd_adr32_if() // b139 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -194479,7 +194479,7 @@ void m68000_device::cmpm_w_aips_aipd_if() // b148 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -194509,7 +194509,7 @@ void m68000_device::cmpm_w_aips_aipd_if() // b148 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -194587,7 +194587,7 @@ void m68000_device::eor_w_dd_ais_if() // b150 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -194703,7 +194703,7 @@ void m68000_device::eor_w_dd_aips_if() // b158 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -194822,7 +194822,7 @@ void m68000_device::eor_w_dd_pais_if() // b160 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -194957,7 +194957,7 @@ void m68000_device::eor_w_dd_das_if() // b168 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -195138,7 +195138,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -195274,7 +195274,7 @@ void m68000_device::eor_w_dd_adr16_if() // b178 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -195399,7 +195399,7 @@ void m68000_device::eor_w_dd_adr32_if() // b179 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=13 c=0 m=.....  i=....... 9 a=2:m_da[rx] d=31:m_dbin
@@ -195437,7 +195437,7 @@ void m68000_device::eor_w_dd_adr32_if() // b179 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -195608,7 +195608,7 @@ void m68000_device::cmpm_l_aips_aipd_if() // b188 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -195635,7 +195635,7 @@ void m68000_device::cmpm_l_aips_aipd_if() // b188 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -195665,7 +195665,7 @@ void m68000_device::cmpm_l_aips_aipd_if() // b188 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -195692,7 +195692,7 @@ void m68000_device::cmpm_l_aips_aipd_if() // b188 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -195771,7 +195771,7 @@ void m68000_device::eor_l_dd_ais_if() // b190 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -195803,7 +195803,7 @@ void m68000_device::eor_l_dd_ais_if() // b190 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -195934,7 +195934,7 @@ void m68000_device::eor_l_dd_aips_if() // b198 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -195972,7 +195972,7 @@ void m68000_device::eor_l_dd_aips_if() // b198 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -196110,7 +196110,7 @@ void m68000_device::eor_l_dd_pais_if() // b1a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -196142,7 +196142,7 @@ void m68000_device::eor_l_dd_pais_if() // b1a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -196300,7 +196300,7 @@ void m68000_device::eor_l_dd_das_if() // b1a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -196332,7 +196332,7 @@ void m68000_device::eor_l_dd_das_if() // b1a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -196536,7 +196536,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -196568,7 +196568,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -196733,7 +196733,7 @@ void m68000_device::eor_l_dd_adr16_if() // b1b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -196765,7 +196765,7 @@ void m68000_device::eor_l_dd_adr16_if() // b1b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -196919,7 +196919,7 @@ void m68000_device::eor_l_dd_adr32_if() // b1b9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=13 c=0 m=.....  i=.l..... 9 a=2:m_da[rx] d=31:m_dbin
@@ -196957,7 +196957,7 @@ void m68000_device::eor_l_dd_adr32_if() // b1b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -196989,7 +196989,7 @@ void m68000_device::eor_l_dd_adr32_if() // b1b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -197234,7 +197234,7 @@ void m68000_device::cmpa_l_ais_ad_if() // b1d0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -197265,7 +197265,7 @@ void m68000_device::cmpa_l_ais_ad_if() // b1d0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -197350,7 +197350,7 @@ void m68000_device::cmpa_l_aips_ad_if() // b1d8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -197386,7 +197386,7 @@ void m68000_device::cmpa_l_aips_ad_if() // b1d8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -197477,7 +197477,7 @@ void m68000_device::cmpa_l_pais_ad_if() // b1e0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -197508,7 +197508,7 @@ void m68000_device::cmpa_l_pais_ad_if() // b1e0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -197619,7 +197619,7 @@ void m68000_device::cmpa_l_das_ad_if() // b1e8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -197650,7 +197650,7 @@ void m68000_device::cmpa_l_das_ad_if() // b1e8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -197805,7 +197805,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -197836,7 +197836,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -197952,7 +197952,7 @@ void m68000_device::cmpa_l_adr16_ad_if() // b1f8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -197983,7 +197983,7 @@ void m68000_device::cmpa_l_adr16_ad_if() // b1f8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -198090,7 +198090,7 @@ void m68000_device::cmpa_l_adr32_ad_if() // b1f9 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -198125,7 +198125,7 @@ void m68000_device::cmpa_l_adr32_ad_if() // b1f9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -198156,7 +198156,7 @@ void m68000_device::cmpa_l_adr32_ad_if() // b1f9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -198585,7 +198585,7 @@ void m68000_device::cmpa_l_imm32_ad_if() // b1fc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -198737,7 +198737,7 @@ void m68000_device::and_b_ais_dd_if() // c010 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -198830,7 +198830,7 @@ void m68000_device::and_b_aips_dd_if() // c018 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -198926,7 +198926,7 @@ void m68000_device::and_b_pais_dd_if() // c020 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -199038,7 +199038,7 @@ void m68000_device::and_b_das_dd_if() // c028 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -199196,7 +199196,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -199309,7 +199309,7 @@ void m68000_device::and_b_adr16_dd_if() // c038 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -199409,7 +199409,7 @@ void m68000_device::and_b_adr32_dd_if() // c039 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=4 c=0 m=.....  i=b...... 1 a=2:m_da[rx] d=31:m_dbin
@@ -199449,7 +199449,7 @@ void m68000_device::and_b_adr32_dd_if() // c039 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -199788,7 +199788,7 @@ void m68000_device::and_b_imm8_dd_if() // c03c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=b...... 1 a=31:m_dbin d=none
@@ -199936,7 +199936,7 @@ void m68000_device::and_w_ais_dd_if() // c050 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -200032,7 +200032,7 @@ void m68000_device::and_w_aips_dd_if() // c058 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -200131,7 +200131,7 @@ void m68000_device::and_w_pais_dd_if() // c060 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -200246,7 +200246,7 @@ void m68000_device::and_w_das_dd_if() // c068 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -200407,7 +200407,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -200523,7 +200523,7 @@ void m68000_device::and_w_adr16_dd_if() // c078 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -200628,7 +200628,7 @@ void m68000_device::and_w_adr32_dd_if() // c079 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=4 c=0 m=.....  i=....... 1 a=2:m_da[rx] d=31:m_dbin
@@ -200666,7 +200666,7 @@ void m68000_device::and_w_adr32_dd_if() // c079 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -201016,7 +201016,7 @@ void m68000_device::and_w_imm16_dd_if() // c07c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=....... 1 a=31:m_dbin d=none
@@ -201171,7 +201171,7 @@ void m68000_device::and_l_ais_dd_if() // c090 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -201203,7 +201203,7 @@ void m68000_device::and_l_ais_dd_if() // c090 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -201293,7 +201293,7 @@ void m68000_device::and_l_aips_dd_if() // c098 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -201331,7 +201331,7 @@ void m68000_device::and_l_aips_dd_if() // c098 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -201428,7 +201428,7 @@ void m68000_device::and_l_pais_dd_if() // c0a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -201460,7 +201460,7 @@ void m68000_device::and_l_pais_dd_if() // c0a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -201577,7 +201577,7 @@ void m68000_device::and_l_das_dd_if() // c0a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -201609,7 +201609,7 @@ void m68000_device::and_l_das_dd_if() // c0a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -201772,7 +201772,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -201804,7 +201804,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -201928,7 +201928,7 @@ void m68000_device::and_l_adr16_dd_if() // c0b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -201960,7 +201960,7 @@ void m68000_device::and_l_adr16_dd_if() // c0b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -202073,7 +202073,7 @@ void m68000_device::and_l_adr32_dd_if() // c0b9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=4 c=0 m=.....  i=.l..... 1 a=2:m_da[rx] d=31:m_dbin
@@ -202111,7 +202111,7 @@ void m68000_device::and_l_adr32_dd_if() // c0b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -202143,7 +202143,7 @@ void m68000_device::and_l_adr32_dd_if() // c0b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -202594,7 +202594,7 @@ void m68000_device::and_l_imm32_dd_if() // c0bc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	// alu r=4 c=0 m=.....  i=.l..... 1 a=31:m_dbin d=none
@@ -202734,7 +202734,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : m_alue & 2 ? 1 : 2;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -202797,7 +202797,7 @@ void m68000_device::mulu_w_ais_dd_if() // c0d0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -202864,7 +202864,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : m_alue & 2 ? 1 : 2;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -202935,7 +202935,7 @@ void m68000_device::mulu_w_aips_dd_if() // c0d8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -203002,7 +203002,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : m_alue & 2 ? 1 : 2;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -203076,7 +203076,7 @@ void m68000_device::mulu_w_pais_dd_if() // c0e0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -203143,7 +203143,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : m_alue & 2 ? 1 : 2;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -203234,7 +203234,7 @@ void m68000_device::mulu_w_das_dd_if() // c0e8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -203301,7 +203301,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : m_alue & 2 ? 1 : 2;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -203436,7 +203436,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -203503,7 +203503,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : m_alue & 2 ? 1 : 2;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -203594,7 +203594,7 @@ void m68000_device::mulu_w_adr16_dd_if() // c0f8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -203661,7 +203661,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : m_alue & 2 ? 1 : 2;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -203743,7 +203743,7 @@ void m68000_device::mulu_w_adr32_dd_if() // c0f9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -203778,7 +203778,7 @@ void m68000_device::mulu_w_adr32_dd_if() // c0f9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -203845,7 +203845,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : m_alue & 2 ? 1 : 2;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -204001,7 +204001,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : m_alue & 2 ? 1 : 2;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -204201,7 +204201,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : m_alue & 2 ? 1 : 2;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -204257,7 +204257,7 @@ void m68000_device::mulu_w_imm16_dd_if() // c0fc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -204331,7 +204331,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : m_alue & 2 ? 1 : 2;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -204464,7 +204464,7 @@ void m68000_device::abcd_pais_paid_if() // c108 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -204492,7 +204492,7 @@ void m68000_device::abcd_pais_paid_if() // c108 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -204587,7 +204587,7 @@ void m68000_device::and_b_dd_ais_if() // c110 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -204695,7 +204695,7 @@ void m68000_device::and_b_dd_aips_if() // c118 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -204806,7 +204806,7 @@ void m68000_device::and_b_dd_pais_if() // c120 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -204933,7 +204933,7 @@ void m68000_device::and_b_dd_das_if() // c128 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -205106,7 +205106,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -205234,7 +205234,7 @@ void m68000_device::and_b_dd_adr16_if() // c138 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -205349,7 +205349,7 @@ void m68000_device::and_b_dd_adr32_if() // c139 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=4 c=0 m=.....  i=b...... 1 a=2:m_da[rx] d=31:m_dbin
@@ -205389,7 +205389,7 @@ void m68000_device::and_b_dd_adr32_if() // c139 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -205599,7 +205599,7 @@ void m68000_device::and_w_dd_ais_if() // c150 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -205715,7 +205715,7 @@ void m68000_device::and_w_dd_aips_if() // c158 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -205834,7 +205834,7 @@ void m68000_device::and_w_dd_pais_if() // c160 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -205969,7 +205969,7 @@ void m68000_device::and_w_dd_das_if() // c168 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -206150,7 +206150,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -206286,7 +206286,7 @@ void m68000_device::and_w_dd_adr16_if() // c178 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -206411,7 +206411,7 @@ void m68000_device::and_w_dd_adr32_if() // c179 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=4 c=0 m=.....  i=....... 1 a=2:m_da[rx] d=31:m_dbin
@@ -206449,7 +206449,7 @@ void m68000_device::and_w_dd_adr32_if() // c179 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -206608,7 +206608,7 @@ void m68000_device::and_l_dd_ais_if() // c190 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -206640,7 +206640,7 @@ void m68000_device::and_l_dd_ais_if() // c190 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -206771,7 +206771,7 @@ void m68000_device::and_l_dd_aips_if() // c198 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -206809,7 +206809,7 @@ void m68000_device::and_l_dd_aips_if() // c198 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -206947,7 +206947,7 @@ void m68000_device::and_l_dd_pais_if() // c1a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -206979,7 +206979,7 @@ void m68000_device::and_l_dd_pais_if() // c1a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -207137,7 +207137,7 @@ void m68000_device::and_l_dd_das_if() // c1a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -207169,7 +207169,7 @@ void m68000_device::and_l_dd_das_if() // c1a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -207373,7 +207373,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -207405,7 +207405,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -207570,7 +207570,7 @@ void m68000_device::and_l_dd_adr16_if() // c1b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -207602,7 +207602,7 @@ void m68000_device::and_l_dd_adr16_if() // c1b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -207756,7 +207756,7 @@ void m68000_device::and_l_dd_adr32_if() // c1b9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=4 c=0 m=.....  i=.l..... 1 a=2:m_da[rx] d=31:m_dbin
@@ -207794,7 +207794,7 @@ void m68000_device::and_l_dd_adr32_if() // c1b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -207826,7 +207826,7 @@ void m68000_device::and_l_dd_adr32_if() // c1b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -207996,7 +207996,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : (m_alue & 3) == 1 ? 1 : (m_alue & 3) == 2 ? 2 : 3;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -208069,7 +208069,7 @@ void m68000_device::muls_w_ais_dd_if() // c1d0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -208136,7 +208136,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : (m_alue & 3) == 1 ? 1 : (m_alue & 3) == 2 ? 2 : 3;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -208217,7 +208217,7 @@ void m68000_device::muls_w_aips_dd_if() // c1d8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -208284,7 +208284,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : (m_alue & 3) == 1 ? 1 : (m_alue & 3) == 2 ? 2 : 3;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -208368,7 +208368,7 @@ void m68000_device::muls_w_pais_dd_if() // c1e0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -208435,7 +208435,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : (m_alue & 3) == 1 ? 1 : (m_alue & 3) == 2 ? 2 : 3;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -208536,7 +208536,7 @@ void m68000_device::muls_w_das_dd_if() // c1e8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -208603,7 +208603,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : (m_alue & 3) == 1 ? 1 : (m_alue & 3) == 2 ? 2 : 3;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -208748,7 +208748,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -208815,7 +208815,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : (m_alue & 3) == 1 ? 1 : (m_alue & 3) == 2 ? 2 : 3;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -208916,7 +208916,7 @@ void m68000_device::muls_w_adr16_dd_if() // c1f8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -208983,7 +208983,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : (m_alue & 3) == 1 ? 1 : (m_alue & 3) == 2 ? 2 : 3;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -209075,7 +209075,7 @@ void m68000_device::muls_w_adr32_dd_if() // c1f9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -209110,7 +209110,7 @@ void m68000_device::muls_w_adr32_dd_if() // c1f9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -209177,7 +209177,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : (m_alue & 3) == 1 ? 1 : (m_alue & 3) == 2 ? 2 : 3;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -209343,7 +209343,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : (m_alue & 3) == 1 ? 1 : (m_alue & 3) == 2 ? 2 : 3;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -209553,7 +209553,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : (m_alue & 3) == 1 ? 1 : (m_alue & 3) == 2 ? 2 : 3;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -209619,7 +209619,7 @@ void m68000_device::muls_w_imm16_dd_if() // c1fc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -209693,7 +209693,7 @@ mulm4:
 	// 0e0 mulm4
 	m_t = !(m_au & 0x3f) ? 0 : (m_alue & 3) == 1 ? 1 : (m_alue & 3) == 2 ? 2 : 3;
 	set_16l(m_pc, m_at);
-	m_pc_source = m_at_source;
+	m_pc_source = telemetry_merge_source(m_pc_source, m_at_source);
 	m_au = m_au - 1;
 	m_au_source = m_au_source;
 	// alu r=7 c=4 m=.nzvc  i=.lm...f 20 a=33:m_aluo d=-1
@@ -209821,7 +209821,7 @@ void m68000_device::add_b_ais_dd_if() // d010 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -209910,7 +209910,7 @@ void m68000_device::add_b_aips_dd_if() // d018 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -210002,7 +210002,7 @@ void m68000_device::add_b_pais_dd_if() // d020 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -210111,7 +210111,7 @@ void m68000_device::add_b_das_dd_if() // d028 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -210264,7 +210264,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -210373,7 +210373,7 @@ void m68000_device::add_b_adr16_dd_if() // d038 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -210471,7 +210471,7 @@ void m68000_device::add_b_adr32_dd_if() // d039 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -210508,7 +210508,7 @@ void m68000_device::add_b_adr32_dd_if() // d039 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -210838,7 +210838,7 @@ void m68000_device::add_b_imm8_dd_if() // d03c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -211035,7 +211035,7 @@ void m68000_device::add_w_ais_dd_if() // d050 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -211127,7 +211127,7 @@ void m68000_device::add_w_aips_dd_if() // d058 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -211222,7 +211222,7 @@ void m68000_device::add_w_pais_dd_if() // d060 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -211334,7 +211334,7 @@ void m68000_device::add_w_das_dd_if() // d068 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -211490,7 +211490,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -211602,7 +211602,7 @@ void m68000_device::add_w_adr16_dd_if() // d078 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -211705,7 +211705,7 @@ void m68000_device::add_w_adr32_dd_if() // d079 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -211740,7 +211740,7 @@ void m68000_device::add_w_adr32_dd_if() // d079 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -212081,7 +212081,7 @@ void m68000_device::add_w_imm16_dd_if() // d07c f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -212295,7 +212295,7 @@ void m68000_device::add_l_ais_dd_if() // d090 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -212326,7 +212326,7 @@ void m68000_device::add_l_ais_dd_if() // d090 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -212415,7 +212415,7 @@ void m68000_device::add_l_aips_dd_if() // d098 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -212451,7 +212451,7 @@ void m68000_device::add_l_aips_dd_if() // d098 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -212546,7 +212546,7 @@ void m68000_device::add_l_pais_dd_if() // d0a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -212577,7 +212577,7 @@ void m68000_device::add_l_pais_dd_if() // d0a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -212692,7 +212692,7 @@ void m68000_device::add_l_das_dd_if() // d0a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -212723,7 +212723,7 @@ void m68000_device::add_l_das_dd_if() // d0a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -212882,7 +212882,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -212913,7 +212913,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -213033,7 +213033,7 @@ void m68000_device::add_l_adr16_dd_if() // d0b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -213064,7 +213064,7 @@ void m68000_device::add_l_adr16_dd_if() // d0b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -213175,7 +213175,7 @@ void m68000_device::add_l_adr32_dd_if() // d0b9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -213210,7 +213210,7 @@ void m68000_device::add_l_adr32_dd_if() // d0b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -213241,7 +213241,7 @@ void m68000_device::add_l_adr32_dd_if() // d0b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -213682,7 +213682,7 @@ void m68000_device::add_l_imm32_dd_if() // d0bc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -213783,7 +213783,7 @@ void m68000_device::adda_w_ds_ad_if() // d0c0 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -213844,7 +213844,7 @@ void m68000_device::adda_w_as_ad_if() // d0c8 f1f8
 	m_aluo_source = m_da_source[ry];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -213905,7 +213905,7 @@ void m68000_device::adda_w_ais_ad_if() // d0d0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -213936,7 +213936,7 @@ void m68000_device::adda_w_ais_ad_if() // d0d0 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -214005,7 +214005,7 @@ void m68000_device::adda_w_aips_ad_if() // d0d8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -214036,7 +214036,7 @@ void m68000_device::adda_w_aips_ad_if() // d0d8 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -214108,7 +214108,7 @@ void m68000_device::adda_w_pais_ad_if() // d0e0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -214139,7 +214139,7 @@ void m68000_device::adda_w_pais_ad_if() // d0e0 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -214228,7 +214228,7 @@ void m68000_device::adda_w_das_ad_if() // d0e8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -214259,7 +214259,7 @@ void m68000_device::adda_w_das_ad_if() // d0e8 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -214392,7 +214392,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -214423,7 +214423,7 @@ adsw2:
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -214512,7 +214512,7 @@ void m68000_device::adda_w_adr16_ad_if() // d0f8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -214543,7 +214543,7 @@ void m68000_device::adda_w_adr16_ad_if() // d0f8 f1ff
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -214623,7 +214623,7 @@ void m68000_device::adda_w_adr32_ad_if() // d0f9 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -214658,7 +214658,7 @@ void m68000_device::adda_w_adr32_ad_if() // d0f9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -214689,7 +214689,7 @@ void m68000_device::adda_w_adr32_ad_if() // d0f9 f1ff
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -214807,7 +214807,7 @@ void m68000_device::adda_w_dpc_ad_if() // d0fa f1ff
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -214969,7 +214969,7 @@ adsw2:
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -215023,7 +215023,7 @@ void m68000_device::adda_w_imm16_ad_if() // d0fc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -215061,7 +215061,7 @@ void m68000_device::adda_w_imm16_ad_if() // d0fc f1ff
 	m_aluo_source = m_da_source[rx];
 	// 3c8 rorm2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -215190,7 +215190,7 @@ void m68000_device::addx_b_pais_paid_if() // d108 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -215219,7 +215219,7 @@ void m68000_device::addx_b_pais_paid_if() // d108 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -215312,7 +215312,7 @@ void m68000_device::add_b_dd_ais_if() // d110 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -215416,7 +215416,7 @@ void m68000_device::add_b_dd_aips_if() // d118 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -215523,7 +215523,7 @@ void m68000_device::add_b_dd_pais_if() // d120 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -215647,7 +215647,7 @@ void m68000_device::add_b_dd_das_if() // d128 f1f8
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -215815,7 +215815,7 @@ adsw2:
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -215939,7 +215939,7 @@ void m68000_device::add_b_dd_adr16_if() // d138 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -216052,7 +216052,7 @@ void m68000_device::add_b_dd_adr32_if() // d139 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -216089,7 +216089,7 @@ void m68000_device::add_b_dd_adr32_if() // d139 f1ff
 	m_edb = m_mmu->read_data(m_aob & ~1, m_aob & 1 ? 0x00ff : 0xff00);
 	if(!(m_aob & 1))
 		m_edb >>= 8;
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -216249,7 +216249,7 @@ void m68000_device::addx_w_pais_paid_if() // d148 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -216281,7 +216281,7 @@ void m68000_device::addx_w_pais_paid_if() // d148 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -216382,7 +216382,7 @@ void m68000_device::add_w_dd_ais_if() // d150 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -216494,7 +216494,7 @@ void m68000_device::add_w_dd_aips_if() // d158 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -216609,7 +216609,7 @@ void m68000_device::add_w_dd_pais_if() // d160 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -216741,7 +216741,7 @@ void m68000_device::add_w_dd_das_if() // d168 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -216917,7 +216917,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -217049,7 +217049,7 @@ void m68000_device::add_w_dd_adr16_if() // d178 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -217172,7 +217172,7 @@ void m68000_device::add_w_dd_adr32_if() // d179 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -217207,7 +217207,7 @@ void m68000_device::add_w_dd_adr32_if() // d179 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -217384,7 +217384,7 @@ void m68000_device::addx_l_pais_paid_if() // d188 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -217416,7 +217416,7 @@ void m68000_device::addx_l_pais_paid_if() // d188 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -217444,7 +217444,7 @@ void m68000_device::addx_l_pais_paid_if() // d188 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -217477,7 +217477,7 @@ void m68000_device::addx_l_pais_paid_if() // d188 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -217603,7 +217603,7 @@ void m68000_device::add_l_dd_ais_if() // d190 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -217634,7 +217634,7 @@ void m68000_device::add_l_dd_ais_if() // d190 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -217764,7 +217764,7 @@ void m68000_device::add_l_dd_aips_if() // d198 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -217800,7 +217800,7 @@ void m68000_device::add_l_dd_aips_if() // d198 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -217936,7 +217936,7 @@ void m68000_device::add_l_dd_pais_if() // d1a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -217967,7 +217967,7 @@ void m68000_device::add_l_dd_pais_if() // d1a0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -218123,7 +218123,7 @@ void m68000_device::add_l_dd_das_if() // d1a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -218154,7 +218154,7 @@ void m68000_device::add_l_dd_das_if() // d1a8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -218354,7 +218354,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -218385,7 +218385,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -218546,7 +218546,7 @@ void m68000_device::add_l_dd_adr16_if() // d1b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -218577,7 +218577,7 @@ void m68000_device::add_l_dd_adr16_if() // d1b8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -218729,7 +218729,7 @@ void m68000_device::add_l_dd_adr32_if() // d1b9 f1ff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -218764,7 +218764,7 @@ void m68000_device::add_l_dd_adr32_if() // d1b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -218795,7 +218795,7 @@ void m68000_device::add_l_dd_adr32_if() // d1b9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -218928,7 +218928,7 @@ void m68000_device::adda_l_ds_ad_if() // d1c0 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 3c0 rorl2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -218989,7 +218989,7 @@ void m68000_device::adda_l_as_ad_if() // d1c8 f1f8
 	m_aluo_source = m_da_source[ry];
 	// 3c0 rorl2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -219047,7 +219047,7 @@ void m68000_device::adda_l_ais_ad_if() // d1d0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -219078,7 +219078,7 @@ void m68000_device::adda_l_ais_ad_if() // d1d0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -219109,7 +219109,7 @@ void m68000_device::adda_l_ais_ad_if() // d1d0 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=2 c=3 m=.....  i=......f 11 a=alub d=15:m_da[rx]
 	alu_addc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -219165,7 +219165,7 @@ void m68000_device::adda_l_aips_ad_if() // d1d8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -219201,7 +219201,7 @@ void m68000_device::adda_l_aips_ad_if() // d1d8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -219232,7 +219232,7 @@ void m68000_device::adda_l_aips_ad_if() // d1d8 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=2 c=3 m=.....  i=......f 11 a=alub d=15:m_da[rx]
 	alu_addc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -219294,7 +219294,7 @@ void m68000_device::adda_l_pais_ad_if() // d1e0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -219325,7 +219325,7 @@ void m68000_device::adda_l_pais_ad_if() // d1e0 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -219356,7 +219356,7 @@ void m68000_device::adda_l_pais_ad_if() // d1e0 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=2 c=3 m=.....  i=......f 11 a=alub d=15:m_da[rx]
 	alu_addc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -219438,7 +219438,7 @@ void m68000_device::adda_l_das_ad_if() // d1e8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -219469,7 +219469,7 @@ void m68000_device::adda_l_das_ad_if() // d1e8 f1f8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -219500,7 +219500,7 @@ void m68000_device::adda_l_das_ad_if() // d1e8 f1f8
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=2 c=3 m=.....  i=......f 11 a=alub d=15:m_da[rx]
 	alu_addc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -219626,7 +219626,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -219657,7 +219657,7 @@ adsl2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -219688,7 +219688,7 @@ adsl2:
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=2 c=3 m=.....  i=......f 11 a=alub d=15:m_da[rx]
 	alu_addc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -219775,7 +219775,7 @@ void m68000_device::adda_l_adr16_ad_if() // d1f8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -219806,7 +219806,7 @@ void m68000_device::adda_l_adr16_ad_if() // d1f8 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -219837,7 +219837,7 @@ void m68000_device::adda_l_adr16_ad_if() // d1f8 f1ff
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=2 c=3 m=.....  i=......f 11 a=alub d=15:m_da[rx]
 	alu_addc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -219915,7 +219915,7 @@ void m68000_device::adda_l_adr32_ad_if() // d1f9 f1ff
 	m_dcr = 0;
 	m_dcr_source = -1;
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -219950,7 +219950,7 @@ void m68000_device::adda_l_adr32_ad_if() // d1f9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -219981,7 +219981,7 @@ void m68000_device::adda_l_adr32_ad_if() // d1f9 f1ff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -220012,7 +220012,7 @@ void m68000_device::adda_l_adr32_ad_if() // d1f9 f1ff
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=2 c=3 m=.....  i=......f 11 a=alub d=15:m_da[rx]
 	alu_addc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -220153,7 +220153,7 @@ void m68000_device::adda_l_dpc_ad_if() // d1fa f1ff
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=2 c=3 m=.....  i=......f 11 a=alub d=15:m_da[rx]
 	alu_addc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -220338,7 +220338,7 @@ adsl2:
 	m_aluo_source = m_da_source[rx];
 	// 25c roml2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	// alu r=2 c=3 m=.....  i=......f 11 a=alub d=15:m_da[rx]
 	alu_addc(m_alub, high16(m_da[rx]));
 	m_aluo_source = m_da_source[rx];
@@ -220416,7 +220416,7 @@ void m68000_device::adda_l_imm32_ad_if() // d1fc f1ff
 	set_16h(m_at, m_dbin);
 	m_at_source = m_dbin_source;
 	set_16l(m_dt, m_dbin);
-	m_dt_source = m_dbin_source;
+	m_dt_source = telemetry_merge_source(m_dt_source, m_dbin_source);
 	m_au = m_au + 2;
 	m_au_source = m_au_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -220454,7 +220454,7 @@ void m68000_device::adda_l_imm32_ad_if() // d1fc f1ff
 	m_aluo_source = m_da_source[rx];
 	// 3c0 rorl2
 	set_16l(m_da[rx], m_aluo);
-	m_da_source[rx] = m_aluo_source;
+	m_da_source[rx] = telemetry_merge_source(m_da_source[rx], m_aluo_source);
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	m_edb = m_mmu->read_program(m_aob & ~1, 0xffff);
 	m_edb_source = -1;
@@ -222535,7 +222535,7 @@ void m68000_device::asr_ais_if() // e0d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -222654,7 +222654,7 @@ void m68000_device::asr_aips_if() // e0d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -222776,7 +222776,7 @@ void m68000_device::asr_pais_if() // e0e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -222915,7 +222915,7 @@ void m68000_device::asr_das_if() // e0e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -223098,7 +223098,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -223237,7 +223237,7 @@ void m68000_device::asr_adr16_if() // e0f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -223367,7 +223367,7 @@ void m68000_device::asr_adr32_if() // e0f9 ffff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -223402,7 +223402,7 @@ void m68000_device::asr_adr32_if() // e0f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -225543,7 +225543,7 @@ void m68000_device::asl_ais_if() // e1d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -225662,7 +225662,7 @@ void m68000_device::asl_aips_if() // e1d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -225784,7 +225784,7 @@ void m68000_device::asl_pais_if() // e1e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -225923,7 +225923,7 @@ void m68000_device::asl_das_if() // e1e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -226106,7 +226106,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -226245,7 +226245,7 @@ void m68000_device::asl_adr16_if() // e1f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -226375,7 +226375,7 @@ void m68000_device::asl_adr32_if() // e1f9 ffff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -226410,7 +226410,7 @@ void m68000_device::asl_adr32_if() // e1f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -226521,7 +226521,7 @@ void m68000_device::lsr_ais_if() // e2d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -226640,7 +226640,7 @@ void m68000_device::lsr_aips_if() // e2d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -226762,7 +226762,7 @@ void m68000_device::lsr_pais_if() // e2e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -226901,7 +226901,7 @@ void m68000_device::lsr_das_if() // e2e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -227084,7 +227084,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -227223,7 +227223,7 @@ void m68000_device::lsr_adr16_if() // e2f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -227353,7 +227353,7 @@ void m68000_device::lsr_adr32_if() // e2f9 ffff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -227388,7 +227388,7 @@ void m68000_device::lsr_adr32_if() // e2f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -227500,7 +227500,7 @@ void m68000_device::lsl_ais_if() // e3d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -227623,7 +227623,7 @@ void m68000_device::lsl_aips_if() // e3d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -227749,7 +227749,7 @@ void m68000_device::lsl_pais_if() // e3e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -227891,7 +227891,7 @@ void m68000_device::lsl_das_if() // e3e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -228079,7 +228079,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -228222,7 +228222,7 @@ void m68000_device::lsl_adr16_if() // e3f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -228354,7 +228354,7 @@ void m68000_device::lsl_adr32_if() // e3f9 ffff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	// alu r=4 c=0 m=.....  i=....... 1 a=2:m_da[rx] d=31:m_dbin
@@ -228392,7 +228392,7 @@ void m68000_device::lsl_adr32_if() // e3f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -228504,7 +228504,7 @@ void m68000_device::roxr_ais_if() // e4d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -228623,7 +228623,7 @@ void m68000_device::roxr_aips_if() // e4d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -228745,7 +228745,7 @@ void m68000_device::roxr_pais_if() // e4e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -228884,7 +228884,7 @@ void m68000_device::roxr_das_if() // e4e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -229067,7 +229067,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -229206,7 +229206,7 @@ void m68000_device::roxr_adr16_if() // e4f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -229336,7 +229336,7 @@ void m68000_device::roxr_adr32_if() // e4f9 ffff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -229371,7 +229371,7 @@ void m68000_device::roxr_adr32_if() // e4f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -229482,7 +229482,7 @@ void m68000_device::roxl_ais_if() // e5d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -229601,7 +229601,7 @@ void m68000_device::roxl_aips_if() // e5d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -229723,7 +229723,7 @@ void m68000_device::roxl_pais_if() // e5e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -229862,7 +229862,7 @@ void m68000_device::roxl_das_if() // e5e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -230045,7 +230045,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -230184,7 +230184,7 @@ void m68000_device::roxl_adr16_if() // e5f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -230314,7 +230314,7 @@ void m68000_device::roxl_adr32_if() // e5f9 ffff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -230349,7 +230349,7 @@ void m68000_device::roxl_adr32_if() // e5f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -230460,7 +230460,7 @@ void m68000_device::ror_ais_if() // e6d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -230579,7 +230579,7 @@ void m68000_device::ror_aips_if() // e6d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -230701,7 +230701,7 @@ void m68000_device::ror_pais_if() // e6e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -230840,7 +230840,7 @@ void m68000_device::ror_das_if() // e6e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -231023,7 +231023,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -231162,7 +231162,7 @@ void m68000_device::ror_adr16_if() // e6f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -231292,7 +231292,7 @@ void m68000_device::ror_adr32_if() // e6f9 ffff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -231327,7 +231327,7 @@ void m68000_device::ror_adr32_if() // e6f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -231438,7 +231438,7 @@ void m68000_device::rol_ais_if() // e7d0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -231557,7 +231557,7 @@ void m68000_device::rol_aips_if() // e7d8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -231679,7 +231679,7 @@ void m68000_device::rol_pais_if() // e7e0 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -231818,7 +231818,7 @@ void m68000_device::rol_das_if() // e7e8 fff8
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -232001,7 +232001,7 @@ adsw2:
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -232140,7 +232140,7 @@ void m68000_device::rol_adr16_if() // e7f8 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {
@@ -232270,7 +232270,7 @@ void m68000_device::rol_adr32_if() // e7f9 ffff
 	m_dcr = m_da[rx];
 	m_dcr_source = m_da_source[rx];
 	set_16l(m_at, m_dbin);
-	m_at_source = m_dbin_source;
+	m_at_source = telemetry_merge_source(m_at_source, m_dbin_source);
 	m_au = merge_16_32(high16(m_at), m_dbin);
 	m_au_source = m_at_source;
 	m_base_ssw = SSW_PROGRAM | SSW_R;
@@ -232305,7 +232305,7 @@ void m68000_device::rol_adr32_if() // e7f9 ffff
 	m_base_ssw = SSW_DATA | SSW_R;
 	telemetry_mark_address_source(m_aob_source);
 	m_edb = m_mmu->read_data(m_aob & ~1, 0xffff);
-	m_edb_source = m_telemetry_last_read_source;
+	m_edb_source = -1;
 	m_icount -= 4;
 	if(m_icount <= 0) {
 		if(access_to_be_redone()) {

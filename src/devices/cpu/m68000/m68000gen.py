@@ -687,6 +687,8 @@ address_like_regs = {
     R.aul, R.auh, R.atl, R.ath, R.pcl, R.pch, R.aobl, R.aobh
 }
 
+long_source_regs = address_like_regs | { R.dtl, R.dth }
+
 def reg_mergeable(rh, rl):
     return rh != None and rl != None and rl <= R.moveml and rh <= R.movemh and rl + (R.axh - R.axl) == rh
 
@@ -2117,6 +2119,15 @@ def generate_source_from_code(code, gen_mode, handler_name=None):
         if target_source != None:
             source.append("\t%s = %s;" % (target_source, make_source_expression(expr, address_context or target_is_address_like(target))))
 
+    def emit_low_half_source_update(target, expr):
+        target_source = source_regname[target]
+        if target_source != None:
+            expr_source = make_source_expression(expr, target_is_address_like(target))
+            if target in long_source_regs:
+                source.append("\t%s = telemetry_merge_source(%s, %s);" % (target_source, target_source, expr_source))
+            else:
+                source.append("\t%s = %s;" % (target_source, expr_source))
+
     def aluname(op, mask, info):
         n = "alu_" + alu_opnames[op]
         if info & ALUInfo.is_long and (op == ALU.asl or op == ALU.asr or op == ALU.lsl or op == ALU.lsr or op == ALU.rol or op == ALU.ror or op == ALU.roxl or op == ALU.roxr):
@@ -2278,7 +2289,7 @@ def generate_source_from_code(code, gen_mode, handler_name=None):
                                 else:
                                     source.append("\tm_edb = m_mmu->read_%s(m_aob & ~1, 0xffff);" % (["program", "data"][ci[2]]))
                     if not ci[4]:
-                        if is_data_space:
+                        if ci[2] != 2 and (gen_mode & GEN.direct):
                             source.append("\tm_edb_source = m_telemetry_last_read_source;")
                         else:
                             source.append("\tm_edb_source = -1;")
@@ -2356,7 +2367,7 @@ def generate_source_from_code(code, gen_mode, handler_name=None):
                 emit_source_update(ci[1], ci[2:])
             elif ci[0] == "=16l":
                 source.append("\tset_16l(%s, %s);" % (regname[ci[1]], make_expression(ci[2:])))
-                emit_source_update(ci[1], ci[2:])
+                emit_low_half_source_update(ci[1], ci[2:])
             elif ci[0] == "=16h":
                 source.append("\tset_16h(%s, %s);" % (regname[ci[1]], make_expression(ci[2:])))
                 emit_source_update(ci[1], ci[2:])

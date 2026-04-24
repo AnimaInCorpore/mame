@@ -257,8 +257,10 @@ protected:
 	void telemetry_flush_pending();
 	void telemetry_mark_code(offs_t address);
 	void telemetry_record_data_access(offs_t address, u16 mem_mask, bool write);
+	void telemetry_record_opcode_access(offs_t address, u16 mem_mask);
 	void telemetry_mark(offs_t address, u64 bits);
 	s32 telemetry_resolve_source(s32 source) const noexcept;
+	s32 telemetry_merge_source(s32 first, s32 second) const noexcept;
 	void telemetry_store_memory_source(offs_t address, s32 source);
 	void telemetry_mark_address_source(s32 source);
 	void telemetry_clear_sources();
