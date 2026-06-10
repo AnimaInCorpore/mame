@@ -177,6 +177,11 @@ protected:
 
 	bool m_telemetry_enabled = false;
 	bool m_telemetry_dirty = false;
+	// Set by generated code before every opcode-space read: true when the
+	// read refills the pipeline (flows to irc), which includes fetches at a
+	// new PC after a control transfer. Non-refill reads are classified by
+	// telemetry_record_opcode_access using the sequential prefetch window.
+	bool m_telemetry_opcode_prefetch = true;
 	u32 m_telemetry_rom_size = 0;
 	telemetry_pending_access m_telemetry_pending;
 	std::unique_ptr<u8[]> m_memory_snapshot;

@@ -354,7 +354,14 @@ void m68000_device::telemetry_record_opcode_access(offs_t address, u16 mem_mask)
 			: address & ~offs_t(1);
 	offs_t const pc = m_pc & ~offs_t(1);
 
-	if(source_address != pc && source_address != ((m_pc + 2) & ~offs_t(1))) {
+	// Prefetches are provenance-only. The generated code flags pipeline
+	// refills before issuing them, which covers fetches at a new PC after a
+	// control transfer; the PC window covers extension-word fetches that the
+	// microcode routes directly to dbin. Everything else is a real data read
+	// serviced through the opcode space (PC-relative tables and constants).
+	// Known limit: a PC-relative operand read landing exactly in the
+	// two-word prefetch window is still treated as prefetch.
+	if(!m_telemetry_opcode_prefetch && source_address != pc && source_address != ((m_pc + 2) & ~offs_t(1))) {
 		telemetry_record_data_access(address, mem_mask, false);
 		return;
 	}
@@ -620,6 +627,7 @@ void m68000_device::device_start()
 
 	m_telemetry_enabled = false;
 	m_telemetry_dirty = false;
+	m_telemetry_opcode_prefetch = true;
 	m_telemetry_rom_size = 0;
 	m_telemetry_pending = {};
 	m_telemetry_pending.source = -1;
@@ -729,6 +737,7 @@ void m68000_device::device_reset()
 	telemetry_flush_pending();
 	m_telemetry_pending = {};
 	m_telemetry_pending.source = -1;
+	m_telemetry_opcode_prefetch = true;
 	telemetry_clear_sources();
 
 	m_inst_state = S_RESET;

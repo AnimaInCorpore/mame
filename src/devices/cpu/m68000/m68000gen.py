@@ -1730,7 +1730,11 @@ def generate_base_code_for_microcode(ir, irmask, madr, tvn, group01):
     sort_and_append(code_to_sort, code)
 
     if wait_bus_finish:
-        code.append(["bus_end", ftu_to_sr and not to_ccr])
+        # to_irc identifies pipeline refills (sequential prefetch, extension
+        # words, and fetches at a new PC after a control transfer); reads that
+        # feed an operand instead are real data reads even when serviced
+        # through the opcode space (PC-relative tables and constants).
+        code.append(["bus_end", ftu_to_sr and not to_ccr, True if to_irc else False])
 
     if to_irc:
         code.append(["=", R.irc, R.edb])
@@ -1934,11 +1938,13 @@ def propagate_bus_access(blocks, code, critical, gen_mode):
                 bus_access = ci
             elif ci[0] == 'bus_end':
                 if bus_access:
+                    prefetch = ci.pop()
                     sr_update = ci.pop()
                     ci.append(bid)
                     ci += bus_access[1:]
                     ci.append(critical)
                     ci.append(sr_update)
+                    ci.append(prefetch)
                     bus_access = None
                     if (gen_mode & GEN.m68008) and ci[2] != 2 and not ci[3]:
                         bid += 4
@@ -2155,6 +2161,12 @@ def generate_source_from_code(code, gen_mode, handler_name=None):
                 f += '_u' # Update the Z flag instead of replacing it
         return n, f
 
+    # jmp (an) / jsr (an) consume a code pointer; the ROM location that
+    # supplied the pointer is an address source worth marking. Only the first
+    # target fetch is stamped, the trailing refill resolves to the same source.
+    is_indirect_dispatch = handler_name in ("jmp_ais", "jsr_ais")
+    dispatch_source_marked = False
+
     source = []
     usage = analyze_register_usage(code)
     if usage['rx'] == 'd':
@@ -2204,6 +2216,11 @@ def generate_source_from_code(code, gen_mode, handler_name=None):
                         source.append("\t[[fallthrough]]; case %d:" % (cid))
                     if is_data_space:
                         source.append("\ttelemetry_mark_address_source(m_aob_source);")
+                    if ci[2] == 0 and not ci[4] and (gen_mode & GEN.direct):
+                        source.append("\tm_telemetry_opcode_prefetch = %s;" % ("true" if ci[11] else "false"))
+                        if is_indirect_dispatch and not dispatch_source_marked:
+                            source.append("\ttelemetry_mark_address_source(m_aob_source);")
+                            dispatch_source_marked = True
                     if ci[4]:
                         if is_data_space:
                             if is_jsr_bsr:
