@@ -141,7 +141,7 @@ MAKEPARAMS := -R
 # Determine running OS
 #
 
-ifeq ($(OS),Windows_NT)
+ifneq ($(MSYSTEM),)
 OS := windows
 GENIEOS := windows
 
