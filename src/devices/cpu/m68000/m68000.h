@@ -268,6 +268,7 @@ protected:
 	s32 telemetry_merge_source(s32 first, s32 second) const noexcept;
 	void telemetry_store_memory_source(offs_t address, s32 source);
 	void telemetry_mark_address_source(s32 source);
+	void telemetry_mark_code_pointer_source(s32 source);
 	void telemetry_clear_sources();
 
 	// update needed stuff on interrupt level switch

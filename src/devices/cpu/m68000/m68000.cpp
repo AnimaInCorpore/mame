@@ -14,6 +14,7 @@ namespace {
 
 constexpr u64 TELEMETRY_CODE        = 0x00000001ULL;
 constexpr u64 TELEMETRY_ADDRESS     = 0x00000002ULL;
+constexpr u64 TELEMETRY_CODE_POINTER = 0x00001000ULL;
 constexpr u64 TELEMETRY_READ_BYTE   = 0x00000100ULL;
 constexpr u64 TELEMETRY_READ_WORD   = 0x00000200ULL;
 constexpr u64 TELEMETRY_READ_LONG   = 0x00000400ULL;
@@ -269,6 +270,16 @@ void m68000_device::telemetry_mark_address_source(s32 source)
 	source = telemetry_resolve_source(source);
 	if(source >= 0 && u32(source) < m_telemetry_rom_size)
 		telemetry_mark(offs_t(source), TELEMETRY_ADDRESS);
+}
+
+void m68000_device::telemetry_mark_code_pointer_source(s32 source)
+{
+	if(!m_telemetry_enabled || !m_telemetry || machine().side_effects_disabled())
+		return;
+
+	source = telemetry_resolve_source(source);
+	if(source >= 0 && u32(source) < m_telemetry_rom_size)
+		telemetry_mark(offs_t(source), TELEMETRY_ADDRESS | TELEMETRY_CODE_POINTER);
 }
 
 void m68000_device::telemetry_mark_code(offs_t address)

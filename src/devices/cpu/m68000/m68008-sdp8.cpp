@@ -178260,7 +178260,7 @@ void m68008_device::jsr_ais_dp8() // 4e90 fff8
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	[[fallthrough]]; case 1:
 	m_telemetry_opcode_prefetch = true;
-	telemetry_mark_address_source(m_aob_source);
+	telemetry_mark_code_pointer_source(m_aob_source);
 	m_edb = m_opcodes8.read_interruptible(m_aob & ~1) << 8;
 	m_edb_source = m_telemetry_last_read_source;
 	m_icount -= 4;
@@ -179773,7 +179773,7 @@ void m68008_device::jmp_ais_dp8() // 4ed0 fff8
 	m_base_ssw = SSW_PROGRAM | SSW_R;
 	[[fallthrough]]; case 1:
 	m_telemetry_opcode_prefetch = true;
-	telemetry_mark_address_source(m_aob_source);
+	telemetry_mark_code_pointer_source(m_aob_source);
 	m_edb = m_opcodes8.read_interruptible(m_aob & ~1) << 8;
 	m_edb_source = m_telemetry_last_read_source;
 	m_icount -= 4;

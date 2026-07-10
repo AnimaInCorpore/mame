@@ -2219,7 +2219,7 @@ def generate_source_from_code(code, gen_mode, handler_name=None):
                     if ci[2] == 0 and not ci[4] and (gen_mode & GEN.direct):
                         source.append("\tm_telemetry_opcode_prefetch = %s;" % ("true" if ci[11] else "false"))
                         if is_indirect_dispatch and not dispatch_source_marked:
-                            source.append("\ttelemetry_mark_address_source(m_aob_source);")
+                            source.append("\ttelemetry_mark_code_pointer_source(m_aob_source);")
                             dispatch_source_marked = True
                     if ci[4]:
                         if is_data_space:
