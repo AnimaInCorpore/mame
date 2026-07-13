@@ -2166,6 +2166,11 @@ def generate_source_from_code(code, gen_mode, handler_name=None):
     # target fetch is stamped, the trailing refill resolves to the same source.
     is_indirect_dispatch = handler_name in ("jmp_ais", "jsr_ais")
     dispatch_source_marked = False
+    # A longword loaded through (aN) or d16(aN) and assigned back to that same
+    # address register is strong, OR-safe evidence for a linked-list `next`
+    # field.  Indexed and pre/post-increment modes are intentionally excluded:
+    # they commonly describe arrays or cursor arithmetic rather than links.
+    is_link_next_movea = handler_name in ("movea_l_ais_ad", "movea_l_das_ad")
 
     source = []
     usage = analyze_register_usage(code)
@@ -2388,6 +2393,9 @@ def generate_source_from_code(code, gen_mode, handler_name=None):
             elif ci[0] == "=16h":
                 source.append("\tset_16h(%s, %s);" % (regname[ci[1]], make_expression(ci[2:])))
                 emit_source_update(ci[1], ci[2:])
+                if is_link_next_movea and source_regname[ci[1]] == "m_da_source[rx]":
+                    source.append("\tif(rx == ry)")
+                    source.append("\t\ttelemetry_mark_link_next_source(m_da_source[rx], m_da[rx]);")
             elif ci[0] == "=8xl":
                 source.append("\tset_8xl(%s, %s);" % (regname[ci[1]], make_expression(ci[2:])))
                 emit_source_update(ci[1], ci[2:])

@@ -53550,6 +53550,8 @@ void m68000_device::movea_l_ais_ad_df() // 2050 f1f8
 	if(m_next_state != S_TRACE) m_next_state = m_int_next_state;
 	set_16h(m_da[rx], m_alue);
 	m_da_source[rx] = m_alue_source;
+	if(rx == ry)
+		telemetry_mark_link_next_source(m_da_source[rx], m_da[rx]);
 	// alu r=2 c=1 m=.....  i=......f 1 a=alub d=-1
 	alu_and(m_alub, 0xffff);
 	m_aluo_source = m_alub_source;
@@ -53933,6 +53935,8 @@ void m68000_device::movea_l_das_ad_df() // 2068 f1f8
 	if(m_next_state != S_TRACE) m_next_state = m_int_next_state;
 	set_16h(m_da[rx], m_alue);
 	m_da_source[rx] = m_alue_source;
+	if(rx == ry)
+		telemetry_mark_link_next_source(m_da_source[rx], m_da[rx]);
 	// alu r=2 c=1 m=.....  i=......f 1 a=alub d=-1
 	alu_and(m_alub, 0xffff);
 	m_aluo_source = m_alub_source;

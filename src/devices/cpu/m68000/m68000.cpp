@@ -15,6 +15,7 @@ namespace {
 constexpr u64 TELEMETRY_CODE        = 0x00000001ULL;
 constexpr u64 TELEMETRY_ADDRESS     = 0x00000002ULL;
 constexpr u64 TELEMETRY_CODE_POINTER = 0x00001000ULL;
+constexpr u64 TELEMETRY_LINK_NEXT    = 0x00002000ULL;
 constexpr u64 TELEMETRY_READ_BYTE   = 0x00000100ULL;
 constexpr u64 TELEMETRY_READ_WORD   = 0x00000200ULL;
 constexpr u64 TELEMETRY_READ_LONG   = 0x00000400ULL;
@@ -280,6 +281,24 @@ void m68000_device::telemetry_mark_code_pointer_source(s32 source)
 	source = telemetry_resolve_source(source);
 	if(source >= 0 && u32(source) < m_telemetry_rom_size)
 		telemetry_mark(offs_t(source), TELEMETRY_ADDRESS | TELEMETRY_CODE_POINTER);
+}
+
+void m68000_device::telemetry_mark_link_next_source(s32 source, u32 target)
+{
+	if(!m_telemetry_enabled || !m_telemetry || !m_memory_snapshot || machine().side_effects_disabled())
+		return;
+
+	source = telemetry_resolve_source(source);
+	if(source < 0 || u32(source) > m_telemetry_rom_size || m_telemetry_rom_size - u32(source) < 4)
+		return;
+
+	// Provenance is deliberately lossy.  Before assigning the stronger linked-
+	// list role, prove that the sourced ROM longword is the value now held by the
+	// self-advanced address register.
+	u8 const *const bytes = m_memory_snapshot.get() + source;
+	u32 const stored_target = (u32(bytes[0]) << 24) | (u32(bytes[1]) << 16) | (u32(bytes[2]) << 8) | bytes[3];
+	if(stored_target == target)
+		telemetry_mark(offs_t(source), TELEMETRY_ADDRESS | TELEMETRY_LINK_NEXT);
 }
 
 void m68000_device::telemetry_mark_code(offs_t address)
@@ -894,4 +913,3 @@ bool m68000_device::memory_translate(int spacenum, int intention, offs_t &addres
 	else
 		return device_memory_interface::memory_translate(spacenum, intention, address, target_space);
 }
-
